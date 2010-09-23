@@ -101,7 +101,7 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
     var errors: List[String] = List()
 
     @tailrec def _parse(args: Seq[String]): Unit = args match {
-      case o :: v :: t if(options contains o) => // -f value
+      case o :: v :: t if(options.contains(o) && v(0) != '-') => // -f value
         options get(o) map { a =>
           a.action(v)
           argumentsFound += a
