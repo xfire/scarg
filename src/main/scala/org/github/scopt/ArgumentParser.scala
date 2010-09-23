@@ -1,29 +1,12 @@
 package org.github.scopt
 
-import collection.mutable.{ListBuffer, Stack => MStack}
+import collection.mutable.{Buffer, ListBuffer, Stack => MStack}
 import annotation.tailrec
 
+trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
 
-trait OptionParser extends ArgumentBuilders {
+  override private[scopt] val arguments = new ListBuffer[Argument]
 
-  trait Argument
-
-  case class Separator(description: String = System.getProperty("line.separator")) extends Argument
-
-  case class PositionalArgument(name: String,
-                                description: String,
-                                optional: Boolean,
-                                action: String => Unit
-                               ) extends Argument
-
-  case class OptionArgument(names: List[String],
-                            valueName: Option[String],
-                            description: String,
-                            default: Option[String],
-                            action: String => Unit
-                           ) extends Argument
-
-  private val arguments = new ListBuffer[Argument]
   private val NL = System.getProperty("line.separator")
 
   val INDENT = " " * 2
@@ -39,8 +22,7 @@ trait OptionParser extends ArgumentBuilders {
   val programName: Option[String] = None
   val errorOnUnknownArgument = true
   
-  // -------- Defining options ---------------
-  private[scopt] def addArgument(arg: Argument) = /* TODO: sanity check: double params, order, ... */ arguments += arg
+  override private[scopt] def addArgument(arg: Argument) = /* TODO: sanity check: double params, order, ... */ arguments += arg
 
   /** produce a list of argument descriptions */
   private def descriptions: Seq[String] = {
