@@ -3,7 +3,7 @@ package org.github.scopt
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 
-class OptionsTest extends FunSuite with ShouldMatchers {
+class OptionParserSpec extends FunSuite with ShouldMatchers {
 
   test("empty argument list on empty option parser") {
     class OP extends OptionParser
