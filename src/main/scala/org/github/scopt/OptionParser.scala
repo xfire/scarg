@@ -3,24 +3,25 @@ package org.github.scopt
 import collection.mutable.{ListBuffer, Stack => MStack}
 import annotation.tailrec
 
-trait Argument
 
-case class Separator(description: String = System.getProperty("line.separator")) extends Argument
+trait OptionParser extends ArgumentBuilders {
 
-case class PositionalArgument(name: String,
-                              description: String,
-                              optional: Boolean,
-                              action: String => Unit
-                             ) extends Argument
+  trait Argument
 
-case class OptionArgument(names: List[String],
-                          valueName: Option[String],
-                          description: String,
-                          default: Option[String],
-                          action: String => Unit
-                         ) extends Argument
+  case class Separator(description: String = System.getProperty("line.separator")) extends Argument
 
-trait OptionParser {
+  case class PositionalArgument(name: String,
+                                description: String,
+                                optional: Boolean,
+                                action: String => Unit
+                               ) extends Argument
+
+  case class OptionArgument(names: List[String],
+                            valueName: Option[String],
+                            description: String,
+                            default: Option[String],
+                            action: String => Unit
+                           ) extends Argument
 
   private val arguments = new ListBuffer[Argument]
   private val NL = System.getProperty("line.separator")
@@ -39,7 +40,7 @@ trait OptionParser {
   val errorOnUnknownArgument = true
   
   // -------- Defining options ---------------
-  protected def add(arg: Argument) = /* TODO: sanity check: double params, order, ... */ arguments += arg
+  private[scopt] def addArgument(arg: Argument) = /* TODO: sanity check: double params, order, ... */ arguments += arg
 
   /** produce a list of argument descriptions */
   private def descriptions: Seq[String] = {
@@ -82,7 +83,7 @@ trait OptionParser {
     val prog = programName map(_ + " ") getOrElse ""
     val optionText = if (optionArguments.isEmpty) "" else OPTIONS_AVAILABLE
     val argumentList = positionalArguments map (p => if(p.optional) wrapOpt(p.name) else p.name) mkString(" ")
-    val descText = if(optionArguments.isEmpty) "" else OPTIONS_HEADER + INDENT + descriptions.mkString(NL + INDENT)
+    val descText = OPTIONS_HEADER + INDENT + descriptions.mkString(NL + INDENT)
 
     USAGE_HEADER + prog + optionText + argumentList + (NL * 2) + descText + NL
   }
