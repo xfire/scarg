@@ -3,6 +3,10 @@ package org.github.scopt
 import collection.mutable.{Buffer, ListBuffer, Stack => MStack}
 import annotation.tailrec
 
+class DoubleArgumentException(val message: String) extends RuntimeException(message)
+class BadArgumentOrderException(val message: String) extends RuntimeException(message)
+
+
 trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
 
   override private[scopt] val arguments = new ListBuffer[Argument]
@@ -22,7 +26,25 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
   val programName: Option[String] = None
   val errorOnUnknownArgument = true
   
-  override private[scopt] def addArgument(arg: Argument) = /* TODO: sanity check: double params, order, ... */ arguments += arg
+  @throws(classOf[DoubleArgumentException])
+  @throws(classOf[BadArgumentOrderException])
+  override private[scopt] def addArgument(arg: Argument) = {
+    arg match {
+      case PositionalArgument(name,_,optional,_) =>
+        // check double entries
+        if(positionalArguments exists (_.name == name))
+          throw new DoubleArgumentException("Positional argument %s already exists." format (name))
+        // no required argument after an optional
+        if(!optional && positionalArguments.exists(_.optional == true))
+          throw new BadArgumentOrderException(
+            "Required positional arguments are not allowed after optional positional arguments (%s)" format (name))
+      case OptionArgument(names,_,_,_,_) =>
+        // check double entries
+        if(optionArguments exists (a => (a.names intersect names).nonEmpty))
+          throw new DoubleArgumentException("Positional argument %s already exists." format (names(0)))
+    }
+    arguments += arg
+  }
 
   /** produce a list of argument descriptions */
   private def descriptions: Seq[String] = {

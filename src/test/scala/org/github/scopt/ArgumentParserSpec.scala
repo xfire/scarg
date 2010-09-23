@@ -183,4 +183,77 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     op.VB should be (Some("bar")); op.VB = None
     op.parseRaw(List("-f", "-b=bar")) should not be ('empty)
   }
+
+  test("flag and positional") {
+    class OP extends ArgumentParser {
+      var VA: Option[String] = None
+      var VB: Option[String] = None
+      ! "-f"  |> {s => VA = Some(s)}
+      + "bar" |> {s => VB = Some(s)}
+    }
+    val op = new OP
+
+    op.parseRaw(Nil) should not be ('empty)
+    op.VA should be (None); op.VA = None
+    op.VB should be (None); op.VB = None
+    op.parseRaw(List("-f", "barbar")) should be ('empty)
+    op.VA should be (Some("")); op.VA = None
+    op.VB should be (Some("barbar")); op.VB = None
+    op.parseRaw(List("barbar", "-f")) should be ('empty)
+    op.VA should be (Some("")); op.VA = None
+    op.VB should be (Some("barbar")); op.VB = None
+  }
+
+  test("optional and positional") {
+    class OP extends ArgumentParser {
+      var VA: Option[String] = None
+      var VB: Option[String] = None
+      ! "-f"  |^ "FOO" |> {s => VA = Some(s)}
+      + "bar"          |> {s => VB = Some(s)}
+    }
+    val op = new OP
+
+    op.parseRaw(Nil) should not be ('empty)
+    op.VA should be (None); op.VA = None
+    op.VB should be (None); op.VB = None
+    op.parseRaw(List("-f", "foo", "barbar")) should be ('empty)
+    op.VA should be (Some("foo")); op.VA = None
+    op.VB should be (Some("barbar")); op.VB = None
+    op.parseRaw(List("barbar", "-f", "foo")) should be ('empty)
+    op.VA should be (Some("foo")); op.VA = None
+    op.VB should be (Some("barbar")); op.VB = None
+    op.parseRaw(List("barbar", "-f")) should not be ('empty)
+    op.parseRaw(List("-f", "barbar")) should not be ('empty)
+  }
+
+  test("double positional arguments") {
+    class OP extends ArgumentParser {
+      + "foo" |> {s => s}
+      + "foo" |> {s => s}
+    }
+
+    evaluating { new OP } should produce [DoubleArgumentException]
+  }
+
+  test("required positional after optional positional") {
+    class OP extends ArgumentParser {
+      ~ "foo" |> {s => s}
+      + "bar" |> {s => s}
+    }
+
+    evaluating { new OP } should produce [BadArgumentOrderException]
+  }
+
+  test("double option arguments") {
+    class OP1 extends ArgumentParser {
+      ! "-f" |> {s => s}
+      ! "-f" |> {s => s}
+    }
+    class OP2 extends ArgumentParser {
+      ! "-f" | "--foo" |> {s => s}
+      ! "-b" | "--foo" |> {s => s}
+    }
+    evaluating { new OP1 } should produce [DoubleArgumentException]
+    evaluating { new OP2 } should produce [DoubleArgumentException]
+  }
 }
