@@ -44,6 +44,7 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
         // check double entries
         if(optionArguments exists (a => (a.names intersect names).nonEmpty))
           throw new DoubleArgumentException("Positional argument %s already exists." format (names(0)))
+      case _ =>
     }
     arguments += arg
   }
@@ -59,15 +60,20 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
       ) mkString ", ")
 
     val args = arguments.map ( _ match {
-      case Separator(s)          => (s, "")
-      case o: OptionArgument     => (describeOption(o), o.description)
-      case p: PositionalArgument => (p.name, p.description)
+      case Separator(s)          => Left(s)
+      case o: OptionArgument     => Right(describeOption(o), o.description)
+      case p: PositionalArgument => Right(p.name, p.description)
     })
 
-    val maxlen: Int = (args.map(_._1.length).foldLeft(0)((a,v) => if(a > v) a else v)) + 3
+    val maxlen: Int = (args.filter(_.isRight).map(_.right.get._1.length).foldLeft(0)((a,v) => if(a > v) a else v)) + 3
 
     // layout argument string and description
-    args map(ap => ap._1 + (" " * (maxlen - ap._1.length)) + ap._2)
+    args map( _ match {
+      case Left(s)                     => s
+      case Right((n, d)) if(d.isEmpty) => n
+      case Right((n, d))               => n + (" " * (maxlen - n.length)) + d
+      case _                           => throw new RuntimeException("we failed badly... escape the ship")
+    })
   }
 
   /** returns a list containing only all option arguments */

@@ -23,6 +23,7 @@ object SimpleExample {
     
     ! "-v" | "--verbose"   |% "active verbose output"            |> config.set("verbose")
     ! "-o" |^ "OUT" |* "-" |% "output filename, default: stdout" |> { config.set("outfile", _) }
+    ("-" >>> 50)
     + "infile"             |% "input filename"                   |> config.set("infile")
   }
 
