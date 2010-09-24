@@ -137,7 +137,7 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
         _parse(t)
       case f :: t if(flags contains f) => // -f
         flags get(f) map { a => 
-          a.action("")
+          a.action(a.default getOrElse "true") // flags are booleans per default
           argumentsFound += a
         }
         _parse(t)
