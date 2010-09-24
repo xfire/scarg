@@ -275,4 +275,21 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     evaluating { new OP1 } should produce [DoubleArgumentException]
     evaluating { new OP2 } should produce [DoubleArgumentException]
   }
+
+  test("error on unknown argument") {
+    class OP extends ArgumentParser {
+      ! "-f" |> {s => s}
+    }
+    val op = new OP
+    op.parseRaw(List("-b")) should not be ('empty)
+  }
+
+  test("disable error on unknown argument") {
+    class OP extends ArgumentParser {
+      override val errorOnUnknownArgument = false
+      ! "-f" |> {s => s}
+    }
+    val op = new OP
+    op.parseRaw(List("-b")) should be ('empty)
+  }
 }

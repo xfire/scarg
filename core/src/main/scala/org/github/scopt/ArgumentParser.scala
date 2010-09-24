@@ -148,7 +148,10 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
         a.action(p)
         _parse(t)
       case o :: t => // unknown param
-        errors = (UNKNOWN_ARGUMENT + o) :: errors
+        if(errorOnUnknownArgument) {
+          errors = (UNKNOWN_ARGUMENT + o) :: errors
+        }
+        _parse(t)
       case Nil =>
     }
 
