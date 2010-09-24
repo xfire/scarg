@@ -8,6 +8,10 @@ trait ConfigMap {
   def set(p: (String, String)) = configurationMap += p
   def set(name: String)(value: String) = configurationMap += (name -> value)
 
+  implicit def toAsWrapper[T](t: (String, T)) = new {
+    def as[U <: T : Reader]: T = (configurationMap get t._1 map (implicitly[Reader[U]].read)).getOrElse(t._2)
+  }
+
 
   implicit object StringReader extends Reader[String] {
     def read(value: String): String = value
