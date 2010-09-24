@@ -5,12 +5,6 @@ import org.scalatest.matchers.ShouldMatchers
 
 class ConfigMapSpec extends FunSuite with ShouldMatchers {
 
-  case class TestConfig() extends ConfigMap {
-    def a = get[String]("a") getOrElse ""
-    def b = get[Int]("b") getOrElse -1
-    def c = get[Double]("c") getOrElse Double.NaN
-  }
-
   test("default value string") {
     case class TestConfig() extends ConfigMap {
       def a = get[String]("a") getOrElse ""
@@ -30,6 +24,13 @@ class ConfigMapSpec extends FunSuite with ShouldMatchers {
       def a = get[Double]("a") getOrElse Double.NaN
     }
     TestConfig().a.isNaN should be (true)
+  }
+
+  test("default value boolean") {
+    case class TestConfig() extends ConfigMap {
+      def a = get[Boolean]("a") getOrElse false
+    }
+    TestConfig().a should be (false)
   }
 
 
@@ -69,4 +70,15 @@ class ConfigMapSpec extends FunSuite with ShouldMatchers {
     c.a should be (23.23)
   }
 
+  test("set a boolean") {
+    case class TestConfig() extends ConfigMap {
+      def a = get[Boolean]("a") getOrElse false
+    }
+
+    def update(config: ConfigMap) = config.set("a" -> "true")
+
+    val c = TestConfig() 
+    update(c)
+    c.a should be (true)
+  }
 }

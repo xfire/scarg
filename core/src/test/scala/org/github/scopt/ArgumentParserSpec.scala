@@ -74,7 +74,7 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     op.parseRaw(Nil) should not be ('empty)
     op.V should be (None)
     op.parseRaw(List("-f")) should be ('empty)
-    op.V should be (Some(""))
+    op.V should be (Some("true"))
   }
 
   test("multiple required flag arguments") {
@@ -93,9 +93,9 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     op.VB should be (None)
     op.VC should be (None)
     op.parseRaw(List("-a", "-b", "-c")) should be ('empty)
-    op.VA should be (Some(""))
-    op.VB should be (Some(""))
-    op.VC should be (Some(""))
+    op.VA should be (Some("true"))
+    op.VB should be (Some("true"))
+    op.VC should be (Some("true"))
     op.parseRaw(List("-a", "-c")) should not be ('empty)
     op.parseRaw(List("-c")) should not be ('empty)
   }
@@ -197,10 +197,10 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     op.VA should be (None); op.VA = None
     op.VB should be (None); op.VB = None
     op.parseRaw(List("-f", "barbar")) should be ('empty)
-    op.VA should be (Some("")); op.VA = None
+    op.VA should be (Some("true")); op.VA = None
     op.VB should be (Some("barbar")); op.VB = None
     op.parseRaw(List("barbar", "-f")) should be ('empty)
-    op.VA should be (Some("")); op.VA = None
+    op.VA should be (Some("true")); op.VA = None
     op.VB should be (Some("barbar")); op.VB = None
   }
 

@@ -13,7 +13,7 @@ trait ArgumentBuilders {
    *
    *   +    -> required positional parameter
    *   *    -> optional positional parameter
-   * 
+   *
    *   |%   -> the description, optional
    *   |>   -> the action
    */
