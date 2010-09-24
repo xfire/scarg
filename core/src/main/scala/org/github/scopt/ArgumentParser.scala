@@ -25,6 +25,8 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
   val optionDelimiters = ":="
   val programName: Option[String] = None
   val errorOnUnknownArgument = true
+  val flagDefaultGiven = "true"
+  val flagDefaultNotGiven = "false"
   
   @throws(classOf[DoubleArgumentException])
   @throws(classOf[BadArgumentOrderException])
@@ -38,7 +40,7 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
         if(!optional && positionalArguments.exists(_.optional == true))
           throw new BadArgumentOrderException(
             "Required positional arguments are not allowed after optional positional arguments (%s)" format (name))
-      case OptionArgument(names,_,_,_,_) =>
+      case OptionArgument(names,valueName,default,_,_) =>
         // check double entries
         if(optionArguments exists (a => (a.names intersect names).nonEmpty))
           throw new DoubleArgumentException("Positional argument %s already exists." format (names(0)))
@@ -137,7 +139,7 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
         _parse(t)
       case f :: t if(flags contains f) => // -f
         flags get(f) map { a => 
-          a.action(a.default getOrElse "true") // flags are booleans per default
+          a.action(flagDefaultGiven) // flags are booleans per default
           argumentsFound += a
         }
         _parse(t)
@@ -154,12 +156,15 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
 
     val notFoundOptions = optionArguments.toSet -- argumentsFound
 
-    // set default values
-    notFoundOptions filter (_.default.isDefined) foreach(o => o.action(o.default.get))
+    // need to set default for not given flags with value "false"
+    notFoundOptions filter (_.valueName.isEmpty) foreach(_.action(flagDefaultNotGiven))
 
+    // set default values for all option arguments
+    notFoundOptions filter (o => o.default.isDefined && o.valueName.nonEmpty) foreach(o => o.action(o.default.get))
 
     // check if all necessary arguments are given
-    errors = (notFoundOptions filter (_.default.isEmpty)).foldLeft(errors)((a,v) => (MISSING_OPTION + v.names(0)) :: a)
+    errors = (notFoundOptions filter (o => o.default.isEmpty && o.valueName.isDefined) // only options which are not flags
+             ).foldLeft(errors)((a,v) => (MISSING_OPTION + v.names(0)) :: a)
     errors = (positionals filter(_.optional == false)).foldLeft(errors)((a,v) => (MISSING_POSITIONAL + v.name) :: a)
 
     errors.reverse

@@ -64,20 +64,20 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     op.V should be (Some("foo"))
   }
 
-  test("single required flag argument") {
+  test("single flag argument") {
     class OP extends ArgumentParser {
       var V: Option[String] = None
       ! "-f" |% "description" |> {s => V = Some(s)}
     }
     val op = new OP
 
-    op.parseRaw(Nil) should not be ('empty)
-    op.V should be (None)
+    op.parseRaw(Nil) should be ('empty)
+    op.V should be (Some("false")); op.V = None
     op.parseRaw(List("-f")) should be ('empty)
     op.V should be (Some("true"))
   }
 
-  test("multiple required flag arguments") {
+  test("multiple flag arguments") {
     class OP extends ArgumentParser {
       var VA: Option[String] = None
       var VB: Option[String] = None
@@ -88,16 +88,22 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     }
     val op = new OP
 
-    op.parseRaw(Nil) should not be ('empty)
-    op.VA should be (None)
-    op.VB should be (None)
-    op.VC should be (None)
+    op.parseRaw(Nil) should be ('empty)
+    op.VA should be (Some("false"))
+    op.VB should be (Some("false"))
+    op.VC should be (Some("false"))
     op.parseRaw(List("-a", "-b", "-c")) should be ('empty)
-    op.VA should be (Some("true"))
-    op.VB should be (Some("true"))
-    op.VC should be (Some("true"))
-    op.parseRaw(List("-a", "-c")) should not be ('empty)
-    op.parseRaw(List("-c")) should not be ('empty)
+    op.VA should be (Some("true")); op.VA = None
+    op.VB should be (Some("true")); op.VB = None
+    op.VC should be (Some("true")); op.VC = None
+    op.parseRaw(List("-a", "-c")) should be ('empty)
+    op.VA should be (Some("true")); op.VA = None
+    op.VB should be (Some("false")); op.VB = None
+    op.VC should be (Some("true")); op.VC = None
+    op.parseRaw(List("-c")) should be ('empty)
+    op.VA should be (Some("false")); op.VA = None
+    op.VB should be (Some("false")); op.VB = None
+    op.VC should be (Some("true")); op.VC = None
   }
 
   test("single required option argument") {
@@ -147,6 +153,19 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     op.parseRaw(List("-b", "-c=ccc")) should not be ('empty)
   }
 
+  test("single flag with default value") {
+    class OP extends ArgumentParser {
+      var V: Option[String] = None
+      ! "-f" |* "default"  |> {s => V = Some(s)}
+    }
+    val op = new OP
+
+    op.parseRaw(Nil) should be ('empty)
+    op.V should be (Some("false"))
+    op.parseRaw(List("-f")) should be ('empty)
+    op.V should be (Some("true"))
+  }
+
   test("single option with default value") {
     class OP extends ArgumentParser {
       var V: Option[String] = None
@@ -194,7 +213,7 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     val op = new OP
 
     op.parseRaw(Nil) should not be ('empty)
-    op.VA should be (None); op.VA = None
+    op.VA should be (Some("false")); op.VA = None
     op.VB should be (None); op.VB = None
     op.parseRaw(List("-f", "barbar")) should be ('empty)
     op.VA should be (Some("true")); op.VA = None
