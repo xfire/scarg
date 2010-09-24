@@ -27,6 +27,7 @@ Optionally an easy to use Configuration Map (`ConfigMap`) can be used to store a
 
       ! "-v" | "--verbose"   |% "active verbose output"            |> config.set("verbose")
       ! "-o" |^ "OUT" |* "-" |% "output filename, default: stdout" |> { config.set("outfile", _) }
+      ("-" >>> 50)
       + "infile"             |% "input filename"                   |> config.set("infile")
     }
 
@@ -48,6 +49,7 @@ The above generates the following usage text:
     options:
       -v, --verbose   active verbose output
       -o OUT          output filename, default: stdout
+      --------------------------------------------------
       infile          input filename
 
 
@@ -144,6 +146,8 @@ be multiplicated n times. (like `"/" * 60`)
     ("=" >>>> 60)
 
 these behave like the operators above, but will add a newline at the start and the end.
+
+beware, those annoying parentheses are needed.
 
 
 Extending ConfigMap
