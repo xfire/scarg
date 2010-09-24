@@ -26,7 +26,7 @@ trait ArgumentBuilders {
         description = desc
         this
       }
-      def |>(f: String => Unit) = {
+      def |>(f: String => Unit) {
         self.addArgument(PositionalArgument(name, description, optional, f))
       }
     }
@@ -83,7 +83,7 @@ trait ArgumentBuilders {
         this
       }
 
-      def |>(f: String => Unit) = {
+      def |>(f: String => Unit) {
         self.addArgument(OptionArgument(names, valueName, description, default, f))
       }
     }
@@ -91,6 +91,39 @@ trait ArgumentBuilders {
   }
 
   implicit def toOptionalBuilder(name: String) = new OptionalBuilder(name)
+
+  /**
+   * build an separator
+   *
+   *   ("---------------------" >>>)
+   *   ("-" >>> 60)
+   *
+   *   ("=====================" >>>>)
+   *   ("=" >>>> 60)
+   *
+   */
+  class SeparatorBuilder(description: String) {
+    def >>> {
+      self.addArgument(Separator(description))
+    }
+
+    def >>>(number: Int) {
+      self.addArgument(Separator(description * number))
+    }
+
+    def >>>> {
+      self.addArgument(Separator(SeparatorBuilder.NL + description + SeparatorBuilder.NL))
+    }
+
+    def >>>>(number: Int) {
+      self.addArgument(Separator(SeparatorBuilder.NL + (description * number) + SeparatorBuilder.NL))
+    }
+  }
+  object SeparatorBuilder {
+    private val NL = System.getProperty("line.separator")
+  }
+
+  implicit def toSeparatorBuilder(description: String) = new SeparatorBuilder(description)
 }
 
 // vim: set ts=2 sw=2 et:

@@ -124,4 +124,20 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
     Test.arguments(2) should have ('names (List("-b")), 'valueName (None),
                                    'default (Some("true")), 'description (""))
   }
+
+  test("separators") {
+    object Test extends TestContainer with ArgumentBuilders {
+      ("---------------------" >>>)
+      ("-" >>> (60))
+      ("=====================" >>>>)
+      ("=" >>>> (60))
+    }
+    val NL = System.getProperty("line.separator")
+
+    Test.arguments should have length (4)
+    Test.arguments(0) should have ('description("---------------------"))
+    Test.arguments(1) should have ('description("-" * 60))
+    Test.arguments(2) should have ('description(NL + "=====================" + NL))
+    Test.arguments(3) should have ('description(NL + ("=" * 60) + NL))
+  }
 }

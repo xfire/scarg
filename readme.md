@@ -92,6 +92,8 @@ These *getters* are intended to be uses for our data accessor functions.
 The `ArgumentParser` provides a nice dsl to create the argument mappings. Two types of arguments
 can be specified. Options (like -f, --bar) or positionals (like the input filename on the last position).
 
+You can also specify separators, which separates the usage text.
+
 
 ### Positionals
 
@@ -129,6 +131,19 @@ any type which is convertable to a string with the `toString` method.
 Descriptions denoted with a `|%` are optional and can be omited.
 
 The Action denoted with a `|>` is strongly required and always have the form `(String) => Unit`.
+
+### Separators
+
+    ("---------------------" >>>)
+    ("-" >>> 60)
+
+the first form will produce exactly the given string, while in the second form the given string will
+be multiplicated n times. (like `"/" * 60`)
+
+    ("=====================" >>>>)
+    ("=" >>>> 60)
+
+these behave like the operators above, but will add a newline at the start and the end.
 
 
 Extending ConfigMap
