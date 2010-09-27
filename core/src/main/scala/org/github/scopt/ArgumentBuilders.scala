@@ -17,26 +17,34 @@ trait ArgumentBuilders {
    *   |%   -> the description, optional
    *   |>   -> the action
    */
-  class PositionalBuilder(name: String) {
-    var description = ""
-    var optional = false
+  class PositionalBuilder(_name: String) {
+    var _description = ""
+    var _optional = false
 
     class Builder {
       def |%(desc: String) = {
-        description = desc
+        _description = desc
         this
       }
       def |>(f: String => Unit) {
-        self.addArgument(PositionalArgument(name, description, optional, f))
+        self.addArgument(PositionalArgument(_name, _description, _optional, f))
       }
+
+      def description = |% _
+      def action = |> _
     }
 
-    def unary_+ = new Builder
-    def unary_~ = {
-      optional = true
+    def unary_+ = required
+    def unary_~ = optional
+
+    def required = new Builder
+    def optional = {
+      _optional = true
       new Builder
     }
   }
+
+  def newPositional(name: String) = new PositionalBuilder(name)
 
   implicit def toPositionalBuilder(name: String) = new PositionalBuilder(name)
 
@@ -54,41 +62,48 @@ trait ArgumentBuilders {
    *   |%  -> the description, optional
    *   |>  -> the action
    */
-  class OptionalBuilder(name: String) {
-    val names = ListBuffer(name)
-    var description = ""
-    var valueName: Option[String] = None
-    var default: Option[String] = None
+  class OptionalBuilder(_name: String) {
+    val _names = ListBuffer(_name)
+    var _description = ""
+    var _valueName: Option[String] = None
+    var _default: Option[String] = None
 
     def unary_! = new Builder
 
     class Builder {
       def |(name: String) = {
-        names += name
+        _names += name
         this
       }
 
       def |%(desc: String) = {
-        description = desc
+        _description = desc
         this
       }
 
       def |^(name: String) = {
-        valueName = Some(name)
+        _valueName = Some(name)
         this
       }
 
       def |*[T](value: T) = {
-        default = Some(value.toString)
+        _default = Some(value.toString)
         this
       }
 
       def |>(f: String => Unit) {
-        self.addArgument(OptionArgument(names, valueName, description, default, f))
+        self.addArgument(OptionArgument(_names, _valueName, _description, _default, f))
       }
-    }
 
+      def name = | _
+      def description = |% _
+      def valueName = |^ _
+      def default = |* _
+      def action = |> _
+    }
   }
+
+  def newOptional(name: String) = !(new OptionalBuilder(name))
 
   implicit def toOptionalBuilder(name: String) = new OptionalBuilder(name)
 
@@ -119,9 +134,13 @@ trait ArgumentBuilders {
       self.addArgument(Separator(SeparatorBuilder.NL + (description * number) + SeparatorBuilder.NL))
     }
   }
-  object SeparatorBuilder {
+  private object SeparatorBuilder {
     private val NL = System.getProperty("line.separator")
   }
+
+  def newSeparator(description: String, number: Int = 1, multiLine: Boolean = false) =
+    if(multiLine) new SeparatorBuilder(description).>>>>(number)
+    else new SeparatorBuilder(description).>>>(number)
 
   implicit def toSeparatorBuilder(description: String) = new SeparatorBuilder(description)
 }

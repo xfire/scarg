@@ -15,12 +15,25 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
   test("complete positional") {
     object Test extends TestContainer with ArgumentBuilders {
       + "required1" |% "description1" |> {action => action}
-      ~ "required2" |% "description2" |> {action => action}
+      ~ "optional" |% "description2" |> {action => action}
     }
 
     Test.arguments should have length (2)
     Test.arguments(0) should have ('name ("required1"), 'description ("description1"), 'optional (false))
-    Test.arguments(1) should have ('name ("required2"), 'description ("description2"), 'optional (true))
+    Test.arguments(1) should have ('name ("optional"), 'description ("description2"), 'optional (true))
+  }
+
+  test("complete positional alternate syntax") {
+    object Test extends TestContainer with ArgumentBuilders {
+      newPositional("required1").required description("description1") action(action => action)
+      newPositional("optional").optional.
+                                description("description2").
+                                action(action => action)
+    }
+
+    Test.arguments should have length (2)
+    Test.arguments(0) should have ('name ("required1"), 'description ("description1"), 'optional (false))
+    Test.arguments(1) should have ('name ("optional"), 'description ("description2"), 'optional (true))
   }
 
   test("positional without description") {
@@ -39,6 +52,26 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
       ! "-f" | "--foo" |^ "valueName1" |* "defaultValue1" |% "description1" |> {action => action}
       ! "--oof" | "-o" |% "description2" |* "defaultValue2" |^ "valueName2" |> {action => action}
       ! "-b" |^ "valueName3" |* "defaultValue3" |% "description3" |> {action => action}
+    }
+
+    Test.arguments should have length (3)
+    Test.arguments(0) should have ('names (List("-f", "--foo")), 'valueName (Some("valueName1")),
+                                   'default (Some("defaultValue1")), 'description ("description1"))
+    Test.arguments(1) should have ('names (List("--oof", "-o")), 'valueName (Some("valueName2")),
+                                   'default (Some("defaultValue2")), 'description ("description2"))
+    Test.arguments(2) should have ('names (List("-b")), 'valueName (Some("valueName3")),
+                                   'default (Some("defaultValue3")), 'description ("description3"))
+  }
+
+  test("complete option alternate syntax") {
+    object Test extends TestContainer with ArgumentBuilders {
+      newOptional("-f") name("--foo") valueName("valueName1") default("defaultValue1") description("description1") action(action => action)
+      newOptional("--oof").name("-o").
+                           valueName("valueName2").
+                           default("defaultValue2").
+                           description("description2").
+                           action(action => action)
+      newOptional("-b") valueName("valueName3") default("defaultValue3") description("description3") action(action => action)
     }
 
     Test.arguments should have length (3)
@@ -131,6 +164,22 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
       ("-" >>> (60))
       ("=====================" >>>>)
       ("=" >>>> (60))
+    }
+    val NL = System.getProperty("line.separator")
+
+    Test.arguments should have length (4)
+    Test.arguments(0) should have ('description("---------------------"))
+    Test.arguments(1) should have ('description("-" * 60))
+    Test.arguments(2) should have ('description(NL + "=====================" + NL))
+    Test.arguments(3) should have ('description(NL + ("=" * 60) + NL))
+  }
+
+  test("separators alternate syntax") {
+    object Test extends TestContainer with ArgumentBuilders {
+      newSeparator("---------------------")
+      newSeparator("-", 60)
+      newSeparator("=====================", multiLine = true)
+      newSeparator("=", 60, true)
     }
     val NL = System.getProperty("line.separator")
 

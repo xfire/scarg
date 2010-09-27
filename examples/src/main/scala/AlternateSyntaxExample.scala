@@ -10,7 +10,7 @@ import org.github.scopt.{ArgumentParser, ConfigMap}
  *   -o OUT
  *   infile
  */
-object SimpleExample {
+object AlternateSyntaxExample {
 
   class Configuration extends ConfigMap {
     lazy val verbose = get[Boolean]("verbose") getOrElse false
@@ -19,12 +19,17 @@ object SimpleExample {
   }
 
   case class SimpleParser(config: ConfigMap) extends ArgumentParser {
-    override val programName = Some("SimpleExample")
+    override val programName = Some("AlternateSyntaxExample")
 
-    ! "-v" | "--verbose"   |% "active verbose output"            |> config.set("verbose")
-    ! "-o" |^ "OUT" |* "-" |% "output filename, default: stdout" |> { config.set("outfile", _) }
-    ("-" >>> 50)
-    + "infile"             |% "input filename"                   |> config.set("infile")
+    newOptional("-v").name("--verbose").description("active verbose output").
+                      action(config.set("verbose"))
+    newOptional("-o").valueName("OUT").description("output filename, default: stdout").
+                      action(config.set("outfile", _))
+
+    newSeparator("-", 50)
+
+    newPositional("infile").required.description("input filename").
+                            action(config.set("infile"))
   }
 
   def main(args: Array[String]) {

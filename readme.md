@@ -114,6 +114,16 @@ The Action denoted with a `|>` is strongly required and always have the form `(S
 
 At the moment you can only have a known number of positional arguments. This may change.
 
+#### Alternate syntax:
+
+    newPositional("required").required.
+                              description("description").
+                              action(String => Unit)
+
+    newPositional("optional").optional.
+                              description("description").
+                              action(String => Unit)
+
 
 ### Options
 
@@ -134,6 +144,15 @@ Descriptions denoted with a `|%` are optional and can be omited.
 
 The Action denoted with a `|>` is strongly required and always have the form `(String) => Unit`.
 
+#### Alternate syntax:
+
+    newOptional("-f").name("--foo").
+                      valueName("valueName).
+                      default("defaultValue").
+                      description("description").
+                      action(String => Unit)
+
+
 ### Separators
 
     ("---------------------" >>>)
@@ -148,6 +167,15 @@ be multiplicated n times. (like `"/" * 60`)
 these behave like the operators above, but will add a newline at the start and the end.
 
 beware, those annoying parentheses are needed.
+
+#### Alternate syntax:
+
+    newSeparator("--------------------")
+    newSeparator("-", 60)
+
+    newSeparator("====================", multiLine = true)
+    newSeparator("=", 60, true)
+
 
 
 Extending ConfigMap
