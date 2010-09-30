@@ -1,6 +1,6 @@
 import sbt._
 
-class ScoptProject(info: ProjectInfo) extends DefaultProject(info) {
+class ScargProject(info: ProjectInfo) extends DefaultProject(info) {
 
   val scalaToolsSnapshots = ScalaToolsSnapshots
 
@@ -17,10 +17,10 @@ class ScoptProject(info: ProjectInfo) extends DefaultProject(info) {
   }
 
   // subprojects
-  lazy val core = project("core", "scopt-core", new CoreProject(_))
-  lazy val examples = project("examples", "scopt-examples", new ExamplesProject(_), core)
+  lazy val core = project("core", "scarg-core", new CoreProject(_))
+  lazy val examples = project("examples", "scarg-examples", new ExamplesProject(_), core)
 
-  // scopt core subproject
+  // scarg core subproject
   class CoreProject(info: ProjectInfo) extends ScoptDefaultProject(info, distPath) {
     val scalatest = Dependencies.scalatest
   }

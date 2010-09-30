@@ -1,4 +1,4 @@
-package org.github.scopt
+package de.downgra.scarg
 
 trait Argument
 

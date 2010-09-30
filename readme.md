@@ -1,11 +1,9 @@
-scopt v2
-========
+scarg
+=====
 
-scopt v2 is a little command line options parsing library.
+scarg is a little command line options parsing library.
 
 it's an fork from [jstrachan/scopt](http://github.com/jstrachan/scopt) with huge refactorings and reconstructions.
-
-scopt v2 is completely incompatible with the former version. so don't wonder.
 
 
 Usage
@@ -56,16 +54,16 @@ The above generates the following usage text:
 Building
 --------
 
-Use [sbt](http://code.google.com/p/simple-build-tool/) to build scopt v2.
+Use [sbt](http://code.google.com/p/simple-build-tool/) to build scarg.
 
     $ sbt
     $ > update
     $ > test
     $ > dist
 
-To run some of the examples, switch to the `scopt-examples` subproject:
+To run some of the examples, switch to the `scarg-examples` subproject:
 
-    $ > project scopt-examples
+    $ > project scarg-examples
     $ > run
 
 
@@ -216,7 +214,7 @@ I think you got the idea.
 Copyright and license
 ---------------------
 
-scopt v2 is copyright &copy; 2010 [Rico Schiekel](http://downgra.de) and released under the [WTFPL](http://sam.zoy.org/wtfpl/).
+scarg is copyright &copy; 2010 [Rico Schiekel](http://downgra.de) and released under the [WTFPL](http://sam.zoy.org/wtfpl/).
 See the accompanying license file for details.
 
 
