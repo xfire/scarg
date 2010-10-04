@@ -12,7 +12,7 @@ trait ArgumentBuilders {
    *   ~ "optional" |% "description" |> {action => action}
    *
    *   +    -> required positional parameter
-   *   *    -> optional positional parameter
+   *   ~    -> optional positional parameter
    *
    *   |%   -> the description, optional
    *   |>   -> the action
