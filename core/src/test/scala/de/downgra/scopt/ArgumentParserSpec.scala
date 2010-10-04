@@ -1,4 +1,4 @@
-package org.github.scopt
+package de.downgra.scarg
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers

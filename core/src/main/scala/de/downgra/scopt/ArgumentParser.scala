@@ -1,4 +1,4 @@
-package org.github.scopt
+package de.downgra.scarg
 
 import collection.mutable.{Buffer, ListBuffer, Stack => MStack}
 import annotation.tailrec
@@ -9,7 +9,7 @@ class BadArgumentOrderException(val message: String) extends RuntimeException(me
 
 trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
 
-  override private[scopt] val arguments = new ListBuffer[Argument]
+  override private[scarg] val arguments = new ListBuffer[Argument]
 
   private val NL = System.getProperty("line.separator")
 
@@ -30,7 +30,7 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
   
   @throws(classOf[DoubleArgumentException])
   @throws(classOf[BadArgumentOrderException])
-  override private[scopt] def addArgument(arg: Argument) = {
+  override private[scarg] def addArgument(arg: Argument) = {
     arg match {
       case PositionalArgument(name,_,optional,_) =>
         // check double entries

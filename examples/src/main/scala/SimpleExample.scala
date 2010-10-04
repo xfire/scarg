@@ -1,6 +1,6 @@
 package examples
 
-import org.github.scopt.{ArgumentParser, ConfigMap}
+import de.downgra.scarg.{ArgumentParser, ConfigMap}
 
 /**
  * usage: SimpleExample [options] infile

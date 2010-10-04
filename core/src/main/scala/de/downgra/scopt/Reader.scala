@@ -1,4 +1,4 @@
-package org.github.scopt
+package de.downgra.scarg
 
 trait Reader[T] {
   def read(value: String): T
