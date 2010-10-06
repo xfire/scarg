@@ -1,38 +1,30 @@
-package de.downgra.scarg
+package de.downgra
 
-trait ConfigMap {
+package object scarg {
 
-  private var configurationMap: Map[String, String] = Map()
+  type ValueMap = Map[String, List[String]]
 
-  def get[T : Reader](name: String): Option[T] = configurationMap get name map (implicitly[Reader[T]].read)
-  def set(p: (String, String)) = configurationMap += p
-  def set(name: String)(value: String) = configurationMap += (name -> value)
+  abstract class ConfigMap(protected val vmap: ValueMap) extends Readers {
+    def get[T : Reader](name: String): Option[T] = vmap get name map(_.head) map(implicitly[Reader[T]].read)
+    def get[T : Reader](name: String, default: T): T = get[T](name) getOrElse (default)
 
-  implicit def toAsWrapper[T](t: (String, T)) = new {
-    def as[U <: T : Reader]: T = (configurationMap get t._1 map (implicitly[Reader[U]].read)).getOrElse(t._2)
-  }
+    def getList[T : Reader](name: String): List[T] = getList[T](name, List())
+    def getList[T : Reader](name: String, default: List[T]): List[T] = vmap get name map (_.map(implicitly[Reader[T]].read)) getOrElse(default)
 
+    implicit def asDefaultWrapper[T : Reader](t: (String, T)) = new {
+      def as[U <: T : Reader]: T = get[T](t._1) getOrElse(t._2)
+    }
 
-  implicit object StringReader extends Reader[String] {
-    def read(value: String): String = value
-  }
+    implicit def asListDefaultWrapper[T : Reader](t: (String, List[T])) = new {
+      def asList[U <: T : Reader]: List[T] = getList[T](t._1, t._2)
+    }
 
-  implicit object IntReader extends Reader[Int] {
-    def read(value: String): Int = value.toInt
-  }
-
-  implicit object DoubleReader extends Reader[Double] {
-    def read(value: String): Double = value.toDouble
-  }
-
-  implicit object BooleanReader extends Reader[Boolean] {
-    def read(value: String): Boolean = value.toLowerCase match {
-      case "true"  | "yes" | "1" => true
-      case "false" | "no"  | "0" => false
-      case _ =>
-        throw new IllegalArgumentException("Expected a string I can interpret as a boolean")
+    implicit def asListWrapper(name: String) = new {
+      def as[T : Reader]: Option[T] = get[T](name)
+      def asList[T : Reader]: List[T] = getList[T](name)
     }
   }
+
 }
 
 // vim: set ts=2 sw=2 et:

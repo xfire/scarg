@@ -6,79 +6,90 @@ import org.scalatest.matchers.ShouldMatchers
 class ConfigMapSpec extends FunSuite with ShouldMatchers {
 
   test("default value string") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[String]("a") getOrElse ""
+    class TestConfig extends ConfigMap(Map()) {
+      val a = get[String]("a") getOrElse ""
     }
-    TestConfig().a should be ("")
+    (new TestConfig).a should be ("")
   }
 
   test("default value int") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[Int]("a") getOrElse -1
+    class TestConfig extends ConfigMap(Map()) {
+      val a = get[Int]("a") getOrElse -1
     }
-    TestConfig().a should be (-1)
+    (new TestConfig).a should be (-1)
   }
 
   test("default value double") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[Double]("a") getOrElse Double.NaN
+    class TestConfig extends ConfigMap(Map()) {
+      val a = get[Double]("a") getOrElse Double.NaN
+      val b = get[Double]("b", 23.42)
     }
-    TestConfig().a.isNaN should be (true)
+    (new TestConfig).a.isNaN should be (true)
+    (new TestConfig).b should be (23.42)
   }
 
   test("default value boolean") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[Boolean]("a") getOrElse false
+    class TestConfig extends ConfigMap(Map()) {
+      val a = get[Boolean]("a") getOrElse false
+      val b = get[Boolean]("b", true)
     }
-    TestConfig().a should be (false)
+    (new TestConfig).a should be (false)
+    (new TestConfig).b should be (true)
   }
 
-
-  test("set a string") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[String]("a") getOrElse ""
+  test("default list value") {
+    class TestConfig extends ConfigMap(Map()) {
+      val a = getList[Int]("a")
+      val b = getList[Int]("b", Nil)
     }
-
-    def update(config: ConfigMap) = config.set("a" -> "foo")
-
-    val c = TestConfig() 
-    update(c)
-    c.a should be ("foo")
+    (new TestConfig).a should be (Nil)
+    (new TestConfig).b should be (Nil)
   }
 
-  test("set an int") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[Int]("a") getOrElse -1
+  test("int list value") {
+    class TestConfig extends ConfigMap(Map("a" -> List("23", "42"))) {
+      val a = getList[Int]("a")
     }
-
-    def update(config: ConfigMap) = config.set("a" -> "42")
-
-    val c = TestConfig() 
-    update(c)
-    c.a should be (42)
+    (new TestConfig).a should be (List(23, 42))
   }
 
-  test("set an double") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[Double]("a") getOrElse Double.NaN
+  test("boolean list value") {
+    class TestConfig extends ConfigMap(Map("a" -> List("true", "FALSE", "0", "yEs"))) {
+      val a = getList[Boolean]("a")
     }
-
-    def update(config: ConfigMap) = config.set("a" -> "23.23")
-
-    val c = TestConfig() 
-    update(c)
-    c.a should be (23.23)
+    (new TestConfig).a should be (List(true, false, false, true))
   }
 
-  test("set a boolean") {
-    case class TestConfig() extends ConfigMap {
-      def a = get[Boolean]("a") getOrElse false
+  test("get default option value") {
+    class TestConfig extends ConfigMap(Map()) {
+      val a = get[Int]("a")
     }
+    (new TestConfig).a should be (None)
+  }
 
-    def update(config: ConfigMap) = config.set("a" -> "true")
+  test("get option value") {
+    class TestConfig extends ConfigMap(Map("a" -> List("42"))) {
+      val a = get[Int]("a")
+    }
+    (new TestConfig).a should be (Some(42))
+  }
 
-    val c = TestConfig() 
-    update(c)
-    c.a should be (true)
+  test("invalid option value") {
+    class TestConfig extends ConfigMap(Map("a" -> List("foo"))) {
+      val a = get[Int]("a")
+    }
+    evaluating { 
+      new TestConfig
+    } should produce [IllegalArgumentException]
+  }
+
+  test("alternate syntax") {
+    class TestConfig extends ConfigMap(Map("a" -> List("42"),
+                                           "b" -> List("23.42", "42.23"))) {
+      val a = ("a").as[Int]
+      val b = ("b").asList[Double]
+    }
+    (new TestConfig).a should be (Some(42))
+    (new TestConfig).b should be (List(23.42, 42.23))
   }
 }
