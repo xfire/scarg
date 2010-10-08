@@ -14,8 +14,8 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("complete positional") {
     object Test extends TestContainer with ArgumentBuilders {
-      + "required1" |% "description1" |> {action => action}
-      ~ "optional" |% "description2" |> {action => action}
+      + "required1" |% "description1" |> 'key
+      ~ "optional" |% "description2" |> 'key
     }
 
     Test.arguments should have length (2)
@@ -25,10 +25,10 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("complete positional alternate syntax") {
     object Test extends TestContainer with ArgumentBuilders {
-      newPositional("required1").required description("description1") action(action => action)
+      newPositional("required1").required description("description1") key('key)
       newPositional("optional").optional.
                                 description("description2").
-                                action(action => action)
+                                key('key)
     }
 
     Test.arguments should have length (2)
@@ -38,8 +38,8 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("positional without description") {
     object Test extends TestContainer with ArgumentBuilders {
-      + "required1" |> {action => action}
-      ~ "required2" |> {action => action}
+      + "required1" |> 'key
+      ~ "required2" |> 'key
     }
 
     Test.arguments should have length (2)
@@ -49,9 +49,9 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("complete option") {
     object Test extends TestContainer with ArgumentBuilders {
-      ! "-f" | "--foo" |^ "valueName1" |* "defaultValue1" |% "description1" |> {action => action}
-      ! "--oof" | "-o" |% "description2" |* "defaultValue2" |^ "valueName2" |> {action => action}
-      ! "-b" |^ "valueName3" |* "defaultValue3" |% "description3" |> {action => action}
+      ! "-f" | "--foo" |^ "valueName1" |* "defaultValue1" |% "description1" |> 'key
+      ! "--oof" | "-o" |% "description2" |* "defaultValue2" |^ "valueName2" |> 'key
+      ! "-b" |^ "valueName3" |* "defaultValue3" |% "description3" |> 'key
     }
 
     Test.arguments should have length (3)
@@ -65,13 +65,13 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("complete option alternate syntax") {
     object Test extends TestContainer with ArgumentBuilders {
-      newOptional("-f") name("--foo") valueName("valueName1") default("defaultValue1") description("description1") action(action => action)
+      newOptional("-f") name("--foo") valueName("valueName1") default("defaultValue1") description("description1") key('key)
       newOptional("--oof").name("-o").
                            valueName("valueName2").
                            default("defaultValue2").
                            description("description2").
-                           action(action => action)
-      newOptional("-b") valueName("valueName3") default("defaultValue3") description("description3") action(action => action)
+                           key('key)
+      newOptional("-b") valueName("valueName3") default("defaultValue3") description("description3") key('key)
     }
 
     Test.arguments should have length (3)
@@ -85,8 +85,8 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("option without description") {
     object Test extends TestContainer with ArgumentBuilders {
-      ! "-f" | "--foo" |^ "valueName1" |* "defaultValue1" |> {action => action}
-      ! "--bar" |^ "valueName2" |* "defaultValue2" |> {action => action}
+      ! "-f" | "--foo" |^ "valueName1" |* "defaultValue1" |> 'key
+      ! "--bar" |^ "valueName2" |* "defaultValue2" |> 'key
     }
 
     Test.arguments should have length (2)
@@ -98,8 +98,8 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("option without default value") {
     object Test extends TestContainer with ArgumentBuilders {
-      ! "-f" | "--foo" |^ "valueName1" |% "description1" |> {action => action}
-      ! "-b" |% "description2" |^ "valueName2" |> {action => action}
+      ! "-f" | "--foo" |^ "valueName1" |% "description1" |> 'key
+      ! "-b" |% "description2" |^ "valueName2" |> 'key
     }
 
     Test.arguments should have length (2)
@@ -111,8 +111,8 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("option without value name") {
     object Test extends TestContainer with ArgumentBuilders {
-      ! "-f" | "--foo" |* "defaultValue1" |% "description1" |> {action => action}
-      ! "--bar" |% "description2" |* "defaultValue2" |> {action => action}
+      ! "-f" | "--foo" |* "defaultValue1" |% "description1" |> 'key
+      ! "--bar" |% "description2" |* "defaultValue2" |> 'key
     }
 
     Test.arguments should have length (2)
@@ -124,7 +124,7 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("minimal option") {
     object Test extends TestContainer with ArgumentBuilders {
-      ! "-f" |> {action => action}
+      ! "-f" |> 'key
     }
 
     Test.arguments should have length (1)
@@ -134,7 +134,7 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("lot option names") {
     object Test extends TestContainer with ArgumentBuilders {
-      ! "-f" | "-foo" | "--bar" | "--blubblub" |> {action => action}
+      ! "-f" | "-foo" | "--bar" | "--blubblub" |> 'key
     }
 
     Test.arguments should have length (1)
@@ -144,9 +144,9 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("option non-string default values") {
     object Test extends TestContainer with ArgumentBuilders {
-      ! "-f" |* 42 |> {action => action}
-      ! "-d" |* 23.42 |> {action => action}
-      ! "-b" |* true |> {action => action}
+      ! "-f" |* 42 |> 'key
+      ! "-d" |* 23.42 |> 'key
+      ! "-b" |* true |> 'key
     }
 
     Test.arguments should have length (3)

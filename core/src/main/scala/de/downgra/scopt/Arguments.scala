@@ -7,13 +7,12 @@ case class Separator(description: String = System.getProperty("line.separator"))
 case class PositionalArgument(name: String,
                               description: String,
                               optional: Boolean,
-                              action: String => Unit
+                              key: String
                              ) extends Argument
 
 case class OptionArgument(names: Seq[String],
                           valueName: Option[String],
                           description: String,
                           default: Option[String],
-                          action: String => Unit
+                          key: String
                          ) extends Argument
-

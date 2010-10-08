@@ -8,14 +8,14 @@ trait ArgumentBuilders {
   /**
    * build a positional argument. the following forms are allowed:
    *
-   *   + "required" |% "description" |> {action => action}
-   *   ~ "optional" |% "description" |> {action => action}
+   *   + "required" |% "description" |> 'key
+   *   ~ "optional" |% "description" |> 'key
    *
    *   +    -> required positional parameter
    *   ~    -> optional positional parameter
    *
    *   |%   -> the description, optional
-   *   |>   -> the action
+   *   |>   -> the key
    */
   class PositionalBuilder(_name: String) {
     var _description = ""
@@ -26,12 +26,14 @@ trait ArgumentBuilders {
         _description = desc
         this
       }
-      def |>(f: String => Unit) {
-        self.addArgument(PositionalArgument(_name, _description, _optional, f))
+      def |>(key: String) {
+        self.addArgument(PositionalArgument(_name, _description, _optional, key))
       }
+      def |>(key: Symbol): Unit = |>(key.name)
 
       def description = |% _
-      def action = |> _
+      def key(name: String) = |>(name)
+      def key(name: Symbol) = |>(name)
     }
 
     def unary_+ = required
@@ -51,7 +53,7 @@ trait ArgumentBuilders {
   /**
    * build a option argument. the following forms are allowed:
    * 
-   *   ! "-f" | "--foo" |^ "valueName" |* "defaultValue" |% "description" |> {action => action}
+   *   ! "-f" | "--foo" |^ "valueName" |* "defaultValue" |% "description" |> 'key
    *
    *   !   -> parameter name
    *
@@ -60,7 +62,7 @@ trait ArgumentBuilders {
    *   |*  -> default value, optional. if not give the parameter must be specified on the cmdl
    *          can be any object with a toString method.
    *   |%  -> the description, optional
-   *   |>  -> the action
+   *   |>  -> the key
    */
   class OptionalBuilder(_name: String) {
     val _names = ListBuffer(_name)
@@ -91,15 +93,17 @@ trait ArgumentBuilders {
         this
       }
 
-      def |>(f: String => Unit) {
-        self.addArgument(OptionArgument(_names, _valueName, _description, _default, f))
+      def |>(key: String) {
+        self.addArgument(OptionArgument(_names, _valueName, _description, _default, key))
       }
+      def |>(key: Symbol): Unit = |>(key.name)
 
       def name = | _
       def description = |% _
       def valueName = |^ _
       def default = |* _
-      def action = |> _
+      def key(key: String) = |>(key)
+      def key(key: Symbol) = |>(key)
     }
   }
 

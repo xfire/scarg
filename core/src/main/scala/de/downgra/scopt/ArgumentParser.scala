@@ -7,7 +7,10 @@ class DoubleArgumentException(val message: String) extends RuntimeException(mess
 class BadArgumentOrderException(val message: String) extends RuntimeException(message)
 
 
-trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
+abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentContainer with ArgumentBuilders {
+
+  /** the parse result, either left with a list of error messages, or right with the value created by `configFactory` */
+  type ParseResult = Either[List[String], T]
 
   override private[scarg] val arguments = new ListBuffer[Argument]
 
@@ -112,48 +115,45 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
       }
   }
 
-  def parse(args: Seq[String]): Boolean = {
-    val errors = parseRaw(args)
-    if(errors.nonEmpty) {
-      showUsage
-      errors foreach (error _)
-    }
-
-    errors.isEmpty
-  }
-
-  def parseRaw(args: Seq[String]): Seq[String] = {
+  def parse(args: Seq[String]): ParseResult = {
     val options = Map() ++ (optionArguments filter (_.valueName.isDefined) flatMap (o => o.names map ((_ -> o))))
     val flags = Map() ++ (optionArguments filter (_.valueName.isEmpty) flatMap (o => o.names map ((_ -> o))))
     val positionals = new MStack[PositionalArgument].pushAll(positionalArguments.reverse)
 
     var argumentsFound: Set[OptionArgument] = Set()
     var errors: List[String] = List()
+    var result: ValueMap = Map()
 
     @tailrec def _parse(args: Seq[String]): Unit = args.toList match {
-      case o :: v :: t if(options.contains(o) && v(0) != '-') => // -f value
+      // ___ -f value
+      case o :: v :: t if(options.contains(o) && v(0) != '-') =>
         options get(o) map { a =>
-          a.action(v)
+          result += (a.key -> (v :: result.getOrElse(a.key, Nil)))
           argumentsFound += a
         }
         _parse(t)
-      case Delimiter(o, v) :: t if(options contains o) => // -f[:=]value
+      // ___ -f[:=]value
+      case Delimiter(o, v) :: t if(options contains o) =>
         options get(o) map { a =>
-          a.action(v)
+          result += (a.key -> (v :: result.getOrElse(a.key, Nil)))
           argumentsFound += a
         }
         _parse(t)
-      case f :: t if(flags contains f) => // -f
+      // ___ -f
+      case f :: t if(flags contains f) =>
         flags get(f) map { a => 
-          a.action(flagDefaultGiven) // flags are booleans per default
+          // flags are booleans per default
+          result += (a.key -> (flagDefaultGiven :: result.getOrElse(a.key, Nil)))
           argumentsFound += a
         }
         _parse(t)
-      case p :: t if(positionals.nonEmpty && p(0) != '-') => // positionalParam
+      // ___ positionalParam
+      case p :: t if(positionals.nonEmpty && p(0) != '-') =>
         val a = positionals.pop
-        a.action(p)
+        result += (a.key -> (p :: result.getOrElse(a.key, Nil)))
         _parse(t)
-      case o :: t => // unknown param
+      // ___ unknown param
+      case o :: t =>
         if(errorOnUnknownArgument) {
           errors = (UNKNOWN_ARGUMENT + o) :: errors
         }
@@ -166,16 +166,25 @@ trait ArgumentParser extends ArgumentContainer with ArgumentBuilders {
     val notFoundOptions = optionArguments.toSet -- argumentsFound
 
     // need to set default for not given flags with value "false"
-    notFoundOptions filter (_.valueName.isEmpty) foreach(_.action(flagDefaultNotGiven))
+    notFoundOptions filter (_.valueName.isEmpty) foreach { a =>
+      result += (a.key -> (flagDefaultNotGiven :: result.getOrElse(a.key, Nil)))
+    }
 
     // set default values for all option arguments
-    notFoundOptions filter (o => o.default.isDefined && o.valueName.nonEmpty) foreach(o => o.action(o.default.get))
+    notFoundOptions filter (o => o.default.isDefined && o.valueName.nonEmpty) foreach { a => 
+      result += (a.key -> (a.default.get :: result.getOrElse(a.key, Nil)))
+    }
 
     // check if all necessary arguments are given
     errors = (notFoundOptions filter (o => o.default.isEmpty && o.valueName.isDefined) // only options which are not flags
              ).foldLeft(errors)((a,v) => (MISSING_OPTION + v.names(0)) :: a)
     errors = (positionals filter(_.optional == false)).foldLeft(errors)((a,v) => (MISSING_POSITIONAL + v.name) :: a)
 
-    errors.reverse
+    if(errors.nonEmpty) {
+      // TODO: display? use switch?
+      // showUsage
+      // errors.reverse foreach (error _)
+      Left(errors.reverse)
+    } else Right(configFactory(result))
   }
 }
