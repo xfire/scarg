@@ -1,6 +1,6 @@
 package examples
 
-import de.downgra.scarg.{ArgumentParser, ConfigMap}
+import de.downgra.scarg.{ArgumentParser, ConfigMap, ValueMap}
 
 /**
  * usage: SimpleExample [options] infile
@@ -12,28 +12,29 @@ import de.downgra.scarg.{ArgumentParser, ConfigMap}
  */
 object SimpleExample {
 
-  class Configuration extends ConfigMap {
-    lazy val verbose = get[Boolean]("verbose") getOrElse false
-    lazy val outfile = get[String]("outfile") getOrElse "-"
-    lazy val infile = ("infile", "").as[String]
+  class Configuration(m: ValueMap) extends ConfigMap(m) {
+    val verbose = ("verbose", false).as[Boolean]
+    val outfile = ("outfile", "-").as[String]
+    val infile = ("infile", "").as[String]
   }
 
-  case class SimpleParser(config: ConfigMap) extends ArgumentParser {
+  case class SimpleParser() extends ArgumentParser(new Configuration(_)) {
     override val programName = Some("SimpleExample")
 
-    ! "-v" | "--verbose"   |% "active verbose output"            |> config.set("verbose")
-    ! "-o" |^ "OUT" |* "-" |% "output filename, default: stdout" |> { config.set("outfile", _) }
+    ! "-v" | "--verbose"   |% "active verbose output"            |> "verbose"
+    ! "-o" |^ "OUT" |* "-" |% "output filename, default: stdout" |> 'outfile
     ("-" >>> 50)
-    + "infile"             |% "input filename"                   |> config.set("infile")
+    + "infile"             |% "input filename"                   |> 'infile
   }
 
   def main(args: Array[String]) {
-    val c = new Configuration
-
-    if(SimpleParser(c).parse(args)) {
-      println("verbose: " + c.verbose)
-      println("outfile: " + c.outfile)
-      println(" infile: " + c.infile)
+    SimpleParser().parse(args) match {
+      case Left(xs) =>
+        println("error: " + xs)
+      case Right(c) =>
+        println("verbose: " + c.verbose)
+        println("outfile: " + c.outfile)
+        println(" infile: " + c.infile)
     }
   }
 
