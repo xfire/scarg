@@ -87,6 +87,22 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     b.right.get should be (Map("flag" -> List("true")))
   }
 
+  test("override flag default arguments") {
+    class OP extends ArgumentParser(s => s) {
+      override val flagDefaults = ("foo", "bar")
+      ! "-f" |% "description" |> 'flag
+    }
+    val op = new OP
+
+    val a = op.parse(Nil)
+    a.isRight should be (true)
+    a.right.get should be (Map("flag" -> List("bar")))
+
+    val b = op.parse(List("-f"))
+    b.isRight should be (true)
+    b.right.get should be (Map("flag" -> List("foo")))
+  }
+
   test("multiple flag arguments") {
     class OP extends ArgumentParser(s => s) {
       ! "-a" |% "description1" |> 'a

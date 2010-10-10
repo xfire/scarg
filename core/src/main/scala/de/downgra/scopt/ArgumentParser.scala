@@ -28,8 +28,9 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
   val optionDelimiters = ":="
   val programName: Option[String] = None
   val errorOnUnknownArgument = true
-  val flagDefaultGiven = "true"
-  val flagDefaultNotGiven = "false"
+
+  /** the default value for flags (first if flag is given, else second) */
+  val flagDefaults = ("true", "false")
   
   @throws(classOf[DoubleArgumentException])
   @throws(classOf[BadArgumentOrderException])
@@ -143,7 +144,7 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
       case f :: t if(flags contains f) =>
         flags get(f) map { a => 
           // flags are booleans per default
-          result += (a.key -> (flagDefaultGiven :: result.getOrElse(a.key, Nil)))
+          result += (a.key -> (flagDefaults._1 :: result.getOrElse(a.key, Nil)))
           argumentsFound += a
         }
         _parse(t)
@@ -167,7 +168,7 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
 
     // need to set default for not given flags with value "false"
     notFoundOptions filter (_.valueName.isEmpty) foreach { a =>
-      result += (a.key -> (flagDefaultNotGiven :: result.getOrElse(a.key, Nil)))
+      result += (a.key -> (flagDefaults._2 :: result.getOrElse(a.key, Nil)))
     }
 
     // set default values for all option arguments
