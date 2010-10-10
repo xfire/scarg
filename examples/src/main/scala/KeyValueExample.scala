@@ -35,10 +35,9 @@ object KeyValueExample {
 
   def main(args: Array[String]) {
     KeyValueParser().parse(args) match {
-      case Left(xs) =>
-        println("error: " + xs)
       case Right(c) =>
         println("got key=%s and value=%s" format (c.pair.key, c.pair.value))
+      case Left(xs) =>
     }
   }
 

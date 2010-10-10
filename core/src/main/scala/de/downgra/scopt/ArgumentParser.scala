@@ -28,6 +28,9 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
   val programName: Option[String] = None
   val errorOnUnknownArgument = true
 
+  /** if true, show usage and error message after parsing arguments */
+  val showErrors = true
+
   /** the default value for flags (first if flag is given, else second) */
   val flagDefaults = ("true", "false")
   
@@ -181,9 +184,10 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
     errors = (positionals filter(_.optional == false)).foldLeft(errors)((a,v) => (MISSING_POSITIONAL + v.name) :: a)
 
     if(errors.nonEmpty) {
-      // TODO: display? use switch?
-      // showUsage
-      // errors.reverse foreach (error _)
+      if(showErrors) {
+        showUsage
+        errors.reverse foreach (error _)
+      }
       Left(errors.reverse)
     } else Right(configFactory(result))
   }

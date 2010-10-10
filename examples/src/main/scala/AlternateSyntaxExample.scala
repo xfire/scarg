@@ -33,12 +33,11 @@ object AlternateSyntaxExample {
 
   def main(args: Array[String]) {
     SimpleParser().parse(args) match {
-      case Left(xs) =>
-        println("error: " + xs)
       case Right(c) =>
         println("verbose: " + c.verbose)
         println("outfile: " + c.outfile)
         println(" infile: " + c.infile)
+      case Left(xs) =>
     }
   }
 
