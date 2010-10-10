@@ -14,8 +14,7 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
 
   override private[scarg] val arguments = new ListBuffer[Argument]
 
-  private val NL = System.getProperty("line.separator")
-
+  val NL = System.getProperty("line.separator")
   val INDENT = " " * 2
   val USAGE_HEADER = "usage: "
   val OPTIONS_AVAILABLE = "[options] "
