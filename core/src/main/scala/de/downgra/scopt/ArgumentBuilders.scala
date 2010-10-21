@@ -9,13 +9,16 @@ trait ArgumentBuilders {
    * build a positional argument. the following forms are allowed:
    *
    *   + "required" |% "description" |> 'key
+   *   + "required" |% "description" |*> 'key
    *   ~ "optional" |% "description" |> 'key
+   *   ~ "optional" |% "description" |*> 'key
    *
    *   +    -> required positional parameter
    *   ~    -> optional positional parameter
    *
    *   |%   -> the description, optional
    *   |>   -> the key
+   *   |*>  -> repeated positional key
    */
   class PositionalBuilder(_name: String) {
     var _description = ""
@@ -27,13 +30,22 @@ trait ArgumentBuilders {
         this
       }
       def |>(key: String) {
-        self.addArgument(PositionalArgument(_name, _description, _optional, key))
+        self.addArgument(PositionalArgument(_name, _description, _optional, false, key))
       }
       def |>(key: Symbol): Unit = |>(key.name)
 
+      def |*>(key: String) {
+        self.addArgument(PositionalArgument(_name, _description, _optional, true, key))
+      }
+      def |*>(key: Symbol): Unit = |*>(key.name)
+
       def description = |% _
+
       def key(name: String) = |>(name)
       def key(name: Symbol) = |>(name)
+
+      def key(name: String, repeated: Boolean) = if(repeated) |*>(name) else |>(name)
+      def key(name: Symbol, repeated: Boolean) = if(repeated) |*>(name) else |>(name)
     }
 
     def unary_+ = required

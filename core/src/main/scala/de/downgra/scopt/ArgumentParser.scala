@@ -38,7 +38,7 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
   @throws(classOf[BadArgumentOrderException])
   override private[scarg] def addArgument(arg: Argument) = {
     arg match {
-      case PositionalArgument(name,_,optional,_) =>
+      case PositionalArgument(name,_,optional,_,_) =>
         // check double entries
         if(positionalArguments exists (_.name == name))
           throw new DoubleArgumentException("Positional argument %s already exists." format (name))

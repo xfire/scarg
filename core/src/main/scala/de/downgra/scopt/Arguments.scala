@@ -7,6 +7,7 @@ case class Separator(description: String = System.getProperty("line.separator"))
 case class PositionalArgument(name: String,
                               description: String,
                               optional: Boolean,
+                              repeated: Boolean,
                               key: String
                              ) extends Argument
 

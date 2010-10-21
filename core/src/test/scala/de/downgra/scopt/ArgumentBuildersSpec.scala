@@ -19,8 +19,10 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
     }
 
     Test.arguments should have length (2)
-    Test.arguments(0) should have ('name ("required1"), 'description ("description1"), 'optional (false))
-    Test.arguments(1) should have ('name ("optional"), 'description ("description2"), 'optional (true))
+    Test.arguments(0) should have ('name ("required1"), 'description ("description1"), 'optional (false),
+                                   'repeated(false))
+    Test.arguments(1) should have ('name ("optional"), 'description ("description2"), 'optional (true),
+                                   'repeated(false))
   }
 
   test("complete positional alternate syntax") {
@@ -32,8 +34,10 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
     }
 
     Test.arguments should have length (2)
-    Test.arguments(0) should have ('name ("required1"), 'description ("description1"), 'optional (false))
-    Test.arguments(1) should have ('name ("optional"), 'description ("description2"), 'optional (true))
+    Test.arguments(0) should have ('name ("required1"), 'description ("description1"), 'optional (false),
+                                   'repeated(false))
+    Test.arguments(1) should have ('name ("optional"), 'description ("description2"), 'optional (true),
+                                   'repeated(false))
   }
 
   test("positional without description") {
@@ -43,9 +47,25 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
     }
 
     Test.arguments should have length (2)
-    Test.arguments(0) should have ('name ("required1"), 'description (""), 'optional (false))
-    Test.arguments(1) should have ('name ("required2"), 'description (""), 'optional (true))
+    Test.arguments(0) should have ('name ("required1"), 'description (""), 'optional (false),
+                                   'repeated(false))
+    Test.arguments(1) should have ('name ("required2"), 'description (""), 'optional (true),
+                                   'repeated(false))
   }
+
+  test("repeated positional") {
+    object Test extends TestContainer with ArgumentBuilders {
+      + "required" |*> 'key
+      ~ "optional" |*> 'key
+    }
+
+    Test.arguments should have length (2)
+    Test.arguments(0) should have ('name ("required"), 'description (""), 'optional (false),
+                                   'repeated (true))
+    Test.arguments(1) should have ('name ("optional"), 'description (""), 'optional (true),
+                                   'repeated (true))
+  }
+
 
   test("complete option") {
     object Test extends TestContainer with ArgumentBuilders {
