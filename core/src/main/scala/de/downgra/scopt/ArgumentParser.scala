@@ -123,6 +123,7 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
     val flags = Map() ++ (optionArguments filter (_.valueName.isEmpty) flatMap (o => o.names map ((_ -> o))))
     val positionals = new MStack[PositionalArgument].pushAll(positionalArguments.reverse)
 
+    var repeatedPositionalsFound: Set[PositionalArgument] = Set()
     var argumentsFound: Set[OptionArgument] = Set()
     var errors: List[String] = List()
     var result: ValueMap = Map()
@@ -152,7 +153,9 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
         _parse(t)
       // ___ positionalParam
       case p :: t if(positionals.nonEmpty && p(0) != '-') =>
-        val a = positionals.pop
+        val a = positionals.head
+        // remember repeated positional arguments for later check
+        if(!a.repeated) positionals.pop else repeatedPositionalsFound += a
         result += (a.key -> (p :: result.getOrElse(a.key, Nil)))
         _parse(t)
       // ___ unknown param
@@ -178,10 +181,18 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
       result += (a.key -> (a.default.get :: result.getOrElse(a.key, Nil)))
     }
 
+    // set default values for optional repeated positional values
+    val missingPositionals = positionals.toSet -- repeatedPositionalsFound // remove found repeated arguments
+    missingPositionals filter(p => p.optional && p.repeated) foreach { a =>
+      result += (a.key -> Nil)
+    }
+
     // check if all necessary arguments are given
     errors = (notFoundOptions filter (o => o.default.isEmpty && o.valueName.isDefined) // only options which are not flags
              ).foldLeft(errors)((a,v) => (MISSING_OPTION + v.names(0)) :: a)
-    errors = (positionals filter(_.optional == false)).foldLeft(errors)((a,v) => (MISSING_POSITIONAL + v.name) :: a)
+
+    // check missing positional arguments without the optional or found repeated
+    errors = (missingPositionals filter(p => p.optional == false)).foldLeft(errors)((a,v) => (MISSING_POSITIONAL + v.name) :: a)
 
     if(errors.nonEmpty) {
       if(showErrors) {
@@ -189,6 +200,6 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
         errors.reverse foreach (error _)
       }
       Left(errors.reverse)
-    } else Right(configFactory(result))
+    } else Right(configFactory(result mapValues (_.reverse)))
   }
 }
