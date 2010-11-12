@@ -7,7 +7,7 @@ class DoubleArgumentException(val message: String) extends RuntimeException(mess
 class BadArgumentOrderException(val message: String) extends RuntimeException(message)
 
 abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentContainer
-                                                                  with DefaultHelpViewer
+                                                                  with HelpViewer
                                                                   with ArgumentBuilders {
 
   /** the parse result, either left with a list of error messages, or right with the value created by `configFactory` */
