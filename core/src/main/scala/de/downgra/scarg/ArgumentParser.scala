@@ -3,9 +3,19 @@ package de.downgra.scarg
 import collection.mutable.{Buffer, ListBuffer, Stack => MStack}
 import annotation.tailrec
 
+/** Exception if an argument is specified twice */
 class DoubleArgumentException(val message: String) extends RuntimeException(message)
+/** Exception if the order of the specified arguments is wrong */
 class BadArgumentOrderException(val message: String) extends RuntimeException(message)
 
+/** The Argument Parser implementation. It's indented to be subclassed and using the 
+ * argument builders to add the argument specification. The constructor expects a
+ * factory which convert's a `ValueMap` to a user defined type `T`.
+ *
+ * @param configFactory factory to create a user defined configuration map from a `ValueMap`
+ * @tparam T user defined configuration map type
+ * @author Rico Schiekel
+ */
 abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentContainer
                                                                   with HelpViewer
                                                                   with ArgumentBuilders {
@@ -15,7 +25,10 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
 
   override protected[scarg] val arguments = new ListBuffer[Argument]
 
+  /** all valid option delimiters (e.g. --foo=bar, --bar:foo, ...) */
   val optionDelimiters = ":="
+
+  /** handle unknown arguments as error? */
   val errorOnUnknownArgument = true
 
   /** if true, show usage and error message after parsing arguments */
@@ -51,6 +64,7 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
     arguments += arg
   }
 
+  /** helper, to parse option delimiters */
   private object Delimiter {
     def unapply(s: String): Option[(String, String)] =
       s.span(!optionDelimiters.contains(_)) match {
@@ -59,6 +73,12 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
       }
   }
 
+  /** parse a list of argument strings and return a `ParseResult`, which is a list of error messages or an instance
+   * created with the `configFactory` factory.
+   *
+   * @param args list of argument strings
+   * @return a `ParseResult`
+   */
   def parse(args: Seq[String]): ParseResult = {
     val options = Map() ++ (optionArguments filter (_.valueName.isDefined) flatMap (o => o.names map ((_ -> o))))
     val flags = Map() ++ (optionArguments filter (_.valueName.isEmpty) flatMap (o => o.names map ((_ -> o))))
