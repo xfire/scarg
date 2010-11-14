@@ -5,7 +5,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 class ArgumentParserSpec extends FunSuite with ShouldMatchers {
 
-  class NoHelpArgumentParser extends ArgumentParser(s => s) {
+  class NoHelpArgumentParser extends ArgumentParser(s => s) with DefaultHelpViewer {
     override val showErrors = false
   }
 

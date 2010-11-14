@@ -1,6 +1,6 @@
 package examples
 
-import de.downgra.scarg.{ArgumentParser, ConfigMap, ValueMap}
+import de.downgra.scarg.{ArgumentParser, ConfigMap, ValueMap, DefaultHelpViewer}
 
 /**
  * usage: SimpleExample [options] infile
@@ -18,7 +18,8 @@ object SimpleExample {
     val infile = ("infile", "").as[String]
   }
 
-  case class SimpleParser() extends ArgumentParser(new Configuration(_)) {
+  case class SimpleParser() extends ArgumentParser(new Configuration(_))
+                               with DefaultHelpViewer {
     override val programName = Some("SimpleExample")
 
     ! "-v" | "--verbose"   |% "active verbose output"            |> "verbose"

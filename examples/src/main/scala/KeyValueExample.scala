@@ -1,6 +1,6 @@
 package examples
 
-import de.downgra.scarg.{ArgumentParser, ConfigMap, Reader, ValueMap}
+import de.downgra.scarg.{ArgumentParser, ConfigMap, Reader, ValueMap, DefaultHelpViewer}
 
 /*
  * usage: KeyValueExample [options] 
@@ -27,7 +27,8 @@ object KeyValueExample {
     val pair = ("pair", KeyValuePair("", "")).as[KeyValuePair]
   }
 
-  case class KeyValueParser() extends ArgumentParser(new KeyValueConfig(_)) {
+  case class KeyValueParser() extends ArgumentParser(new KeyValueConfig(_))
+                                 with DefaultHelpViewer {
     override val programName = Some("KeyValueExample")
     
     ! "-k" |^ "Key=Value" |% "a key=value pair" |> 'pair
