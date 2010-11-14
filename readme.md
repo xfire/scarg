@@ -60,13 +60,51 @@ Use [sbt](http://code.google.com/p/simple-build-tool/) to build scarg.
     $ sbt
     $ > update
     $ > test
-    $ > dist
 
 To run some of the examples, switch to the `scarg-examples` subproject:
 
     $ > project scarg-examples
     $ > run
     $ > run -v -o outfile.txt infile.txt
+
+
+Using scarg with SBT
+--------------------
+
+add the repository and and the dependency (the two val's in the example) to your project configuration.
+
+    import sbt._
+    class MyProject(info: ProjectInfo) extends DefaultProject(info) {
+      val scargRepo = "scarg-repo" at "http://xfire.github.com/scarg/maven-repo/"
+      val scarg = "de.downgra" % "scarg_2.8.1" % "1.0.0-SNAPSHOT"
+    }
+
+if you don't need the examples, only use the *scarg-core* dependency.
+
+    val scarg = "de.downgra" % "scarg-core_2.8.1" % "1.0.0-SNAPSHOT"
+
+
+Using scarg with Maven
+----------------------
+
+add the following dependencies and repositories to your `pom.xml`.
+
+    <dependency>
+        <groupId>de.downgra</groupId>
+        <artifactId>scarg_2.8.1</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <scope>compile</scope>
+    </dependency>
+
+    <repository>
+        <id>scargRepo</id>
+        <name>scarg repo</name>
+        <url>http://xfire.github.com/scarg/maven-repo/</url>
+    </repository>
+
+if you don't need the examples, only use the *scarg-core* dependency.
+
+    <artifactId>scarg-core_2.8.1</artifactId>
 
 
 API
