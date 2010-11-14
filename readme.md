@@ -249,4 +249,3 @@ TODO
 ----
 
 * add support for maven instead of "dist"
-* update to scala 2.8.1
