@@ -248,4 +248,4 @@ See the accompanying license file for details.
 TODO
 ----
 
-* add support for maven instead of "dist"
+* nothing ;)
