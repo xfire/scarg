@@ -2,10 +2,16 @@ package de.downgra.scarg
 
 import collection.mutable.Buffer
 
+/** Abstract argument container.
+ *
+ * @author Rico Schiekel
+ */
 trait ArgumentContainer {
 
+  /** `Buffer` which holds all arguments */
   protected[scarg] val arguments: Buffer[Argument]
 
+  /** add a single argument to the argument list */
   protected[scarg] def addArgument(arg: Argument): Unit
 
   /** returns a list containing only all option arguments */

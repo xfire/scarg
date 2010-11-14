@@ -1,9 +1,11 @@
 package de.downgra.scarg
 
+/** interface for the conversion type classes */
 trait Reader[T] {
   def read(value: String): T
 }
 
+/** some default implementations which can be mixed in */
 trait Readers {
   implicit object StringReader extends Reader[String] {
     def read(value: String): String = value
@@ -35,6 +37,7 @@ trait Readers {
   }
 }
 
-object Reders extends Readers
+/** the same default implementations which can be imported */
+object Readers extends Readers
 
 // vim: set ts=2 sw=2 et:

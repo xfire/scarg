@@ -2,6 +2,10 @@ package de.downgra.scarg
 
 import collection.mutable.ListBuffer
 
+/** trait holding builders to define argument definitions.
+ *
+ * @author Rico Schiekel
+ */
 trait ArgumentBuilders {
   self: ArgumentContainer =>
 
