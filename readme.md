@@ -1,42 +1,43 @@
 scarg
 =====
 
-scarg is a little command line options parsing library.
-
-it's an fork from [jstrachan/scopt](http://github.com/jstrachan/scopt) with huge refactorings and reconstructions.
+scarg is a little command line argument parsing library.
 
 
 Usage
 -----
 
-Create an *ArgumentParser* and customise it with the options you need, passing in functions to process each option or argument.
-Optionally an easy to use Configuration Map (`ConfigMap`) can be used to store an retrieve the configuration values.
+Create a configuration map and an *ArgumentParser* and customise it with the options you need. To simplify life,
+use the `ConfigMap` for your configuration map to receive some nice power-ups like value type conversion. (but 
+you can also use a simple `Map`)
 
-    // we want to store three values
-    class Configuration extends ConfigMap {
-      lazy val verbose = get[Boolean]("verbose") getOrElse false
-      lazy val outfile = get[String]("outfile") getOrElse "-"
-      lazy val infile = ("infile", "").as[String]
+    // we want to store three values, a boolean and two strings
+    class Configuration(m: ValueMap) extends ConfigMap(m) {
+      val verbose = ("verbose", false).as[Boolean]
+      val outfile = ("outfile", "-").as[String]
+      val infile = ("infile", "").as[String]
     }
 
-    // our argument parser which uses some ConfigMap
-    case class SimpleParser(config: ConfigMap) extends ArgumentParser {
-      override val programName = Some("SimpleExample")
+    // our argument parser which uses a factory to create our Configuration
+    case class SimpleParser() extends ArgumentParser(new Configuration(_))
+                                 with DefaultHelpViewer {
+      override val programName = Some("SimpleExample") // set the program name for the help text
 
-      ! "-v" | "--verbose"   |% "active verbose output"            |> config.set("verbose")
-      ! "-o" |^ "OUT" |* "-" |% "output filename, default: stdout" |> { config.set("outfile", _) }
+      // define our expected arguments
+      ! "-v" | "--verbose"   |% "active verbose output"            |> "verbose"
+      ! "-o" |^ "OUT" |* "-" |% "output filename, default: stdout" |> 'outfile
       ("-" >>> 50)
-      + "infile"             |% "input filename"                   |> config.set("infile")
+      + "infile"             |% "input filename"                   |> 'infile
     }
 
-    val config = new Configuration
-    if(SimpleParser(config).parse(args)) {
-      // do stuff, e.g.
-      println("verbose: " + c.verbose)
-      println("outfile: " + c.outfile)
-      println(" infile: " + c.infile)
-    } else {
-      // arguments are bad, usage message will have been displayed
+
+    SimpleParser().parse(args) match {
+      case Right(c) =>
+        println("verbose: " + c.verbose)
+        println("outfile: " + c.outfile)
+        println(" infile: " + c.infile)
+      case Left(xs) =>
+        // arguments are bad, usage message will have been displayed automagically
     }
 
 The above generates the following usage text:
@@ -65,40 +66,45 @@ To run some of the examples, switch to the `scarg-examples` subproject:
 
     $ > project scarg-examples
     $ > run
+    $ > run -v -o outfile.txt infile.txt
 
 
 API
 ---
 
-The `ConfigMap` provide some *setters* and *getters* to work with the stored data.
+Simply extend the class `ArgumentParser` and provide a factory which will transform a `ValueMap` into
+your own configuration mapping. The `ConfigMap` can be used for this task.
 
-The *setters* are intended to be used inside our argument parser.
+The `ValueMap` has the type `Map[String, List[String]]`, ergo maps a key (which is a string) to a list
+of string values (if parameters are given multiple times).
 
-    def setters(config: ConfigMap) {
-      config.set("key")("value")
-      config.set("key" -> "value")
-      config.set("key", "value")
+### ConfigMap
+
+The `ConfigMap` provide some data converters which can be used to quickly create a container with your
+arguments with the correct type.
+
+    class MyConfig(m: ValueMap) extends ConfigMap(m) {
+      val verbose = ("verbose", false).as[Boolean]
+      val outfile = ("outfile", "-").as[String]
+      val infile = ("infile", "").as[String]
     }
 
-These *getters* are intended to be uses for our data accessor functions.
+If you define `val`'s, type conversion errors will be generated within the parsing process. Lazy `val`'s
+or `def`'s will throw exceptions on the first access.
 
-    class MyConfig extends ConfigMap {
-      // getters
-      lazy val str   = ("key", "default").as[String]
-      lazy val bool  = ("key", false).as[Boolean]
-      lazy val other = get[Int]("key") getOrElse 42
-    }
+### Argument Parser
 
 The `ArgumentParser` provides a nice dsl to create the argument mappings. Two types of arguments
 can be specified. Options (like -f, --bar) or positionals (like the input filename on the last position).
 
-You can also specify separators, which separates the usage text.
+You can also specify separators to separates the usage text.
 
+#### Positionals
 
-### Positionals
-
-    + "required"   |% "some description"    |> {String => Unit}
-    ~ "optional"   |% "blah blah"           |> {String => Unit}
+    + "required"   |% "some description"    |> "key"
+    + "required"   |% "some description"    |*> "key"
+    ~ "optional"   |% "blah blah"           |> 'key
+    ~ "optional"   |% "blah blah"           |*> 'key
 
 The `+` define a *required* positional argument, which can not be omited.</br>
 A `~` defines a *optional* positional argument, which can be omited.
@@ -108,31 +114,36 @@ There can **never** be a required argument **after** an optional one. This will 
 
 Descriptions denoted with a `|%` are optional and can be omited.
 
-The Action denoted with a `|>` is strongly required and always have the form `(String) => Unit`.
+The key denoted with a `|>` is required and set the name under which the parsed value
+is inserted into the map of parsed values.
+A key denoted with a `|*>` marks repeated positionals (e.g. unlimited number of input files).
 
-At the moment you can only have a known number of positional arguments. This may change.
+A key can be a String or a Symbol.
 
-#### Alternate syntax:
+##### Alternate syntax:
 
     newPositional("required").required.
                               description("description").
-                              action(String => Unit)
+                              key("key")
+    newPositional("required").required.
+                              description("description").
+                              key("key", repeated = false)
 
     newPositional("optional").optional.
                               description("description").
-                              action(String => Unit)
+                              key('key, true)
 
 
-### Options
+#### Options
 
     ! "-f" | "--foo" |^ "valueName" |* "defaultValue" |% "description" |> {String => Unit}
 
 Options are defined by using a starting `!`. After that, there can be any number of additional names
-using a `|`. At least there is always one, sometimes more names for that option.
+using a `|`. At least there is one, sometimes more names for that option.
 
-An option can be a flag or can have a value. Flags are things like `-f`, `--verbose` and so on. To define
+An option can be a flag or it can have a value. Flags are things like `-f`, `--verbose` and so on. To define
 such flags, omit the value name `|^`.<br/>
-If you define a value name, the following variant are allowed: `-f value`, `-f=value` and `-f:value`. 
+If you define a value name `myValue`, the following variant are allowed: `-f myValue`, `-f=myValue` and `-f:myValue`. 
 The delimiter (`:` and `=`) can be changed by overriding the member `optionDelimiters`.
 
 If you don't define a default value with `|*`, the option must be specified. The default value can be
@@ -140,18 +151,19 @@ any type which is convertable to a string with the `toString` method.
 
 Descriptions denoted with a `|%` are optional and can be omited.
 
-The Action denoted with a `|>` is strongly required and always have the form `(String) => Unit`.
+The key denoted with a `|>` is required and can be a String or a Symbol. It's used as key for the map of parsed
+values.
 
-#### Alternate syntax:
+##### Alternate syntax:
 
     newOptional("-f").name("--foo").
                       valueName("valueName).
                       default("defaultValue").
                       description("description").
-                      action(String => Unit)
+                      key('key)
 
 
-### Separators
+#### Separators
 
     ("---------------------" >>>)
     ("-" >>> 60)
@@ -166,7 +178,7 @@ these behave like the operators above, but will add a newline at the start and t
 
 beware, those annoying parentheses are needed.
 
-#### Alternate syntax:
+##### Alternate syntax:
 
     newSeparator("--------------------")
     newSeparator("-", 60)
@@ -175,18 +187,29 @@ beware, those annoying parentheses are needed.
     newSeparator("=", 60, true)
 
 
+### Help Viewer
+
+The generation of the help and usage text can be specified by providing an implementation of the `HelpViewer` trait.
+A default implementation is provided with the `DefaultHelpViewer` trait, which can be mixed into the `ArgumentParser`
+class.
+If you don't want output, you can use the `SilentHelpViewer` or create an own by extending the `HelpViewer` trait.
+
+The `DefaultHelpViewer` can be customized by overriding it's `val`'s like `INDENT`, `USAGE_HEADER`,
+`UNKNOWN_ARGUMENT`, ... in your parser implementation.
+Also the default output to `stderr` can be changed by overwriting the `output(s: String)` method.
+
 
 Extending ConfigMap
 -------------------
 
-Imagine you want to save and get key/value pairs in your `ConfigMap` via `-v key=value` arguments.
+Imagine you want to get key/value pairs in your `ConfigMap` via `-v key=value` arguments.
 
 The only thing you must do is to provide a new type class instance of the trait `Reader[T]`.
 In this example it's the `implicit object KeyValueReader`.
 
     case class KeyValuePair(key: String, value: String)
   
-    class KeyValueConfig extends ConfigMap {
+    class KeyValueConfig(m: ValueMap) extends ConfigMap(m) {
       // type class to read an KeyValuePair
       implicit object KeyValueReader extends Reader[KeyValuePair] {
         def read(value: String): KeyValuePair = value.indexOf('=') match {
@@ -197,10 +220,10 @@ In this example it's the `implicit object KeyValueReader`.
           }
       } 
   
-      lazy val pair = ("pair", KeyValuePair("", "")).as[KeyValuePair]
+      val pair = ("pair", KeyValuePair("", "")).as[KeyValuePair]
     }
   
-    case class KeyValueParser(config: ConfigMap) extends ArgumentParser {
+    case class KeyValueParser() extends ArgumentParser(new KeyValueConfig(_)) with DefaultHelpViewer {
       override val programName = Some("KeyValueExample")
       
       ! "-k" |^ "Key=Value" |% "a key=value pair" |> config.set("pair")
@@ -219,17 +242,8 @@ See the accompanying license file for details.
 
 
 
-Credits
--------
-
-This code is based on work by Tim Perrett, Aaron Harnly's, James Strachan and all others in the commit history.
-
-
-
 TODO
 ----
 
-* Can we use the Reader[T] type classes also in the ArgumentParser to got some sort of input validation?
-* Support unknown number of positional arguments.
-* Add more scaladoc.
-
+* add support for maven instead of "dist"
+* update to scala 2.8.1
