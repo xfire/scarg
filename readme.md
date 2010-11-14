@@ -95,7 +95,7 @@ or `def`'s will throw exceptions on the first access.
 ### Argument Parser
 
 The `ArgumentParser` provides a nice dsl to create the argument mappings. Two types of arguments
-can be specified. Options (like -f, --bar) or positionals (like the input filename on the last position).
+can be specified. Options (like `-f`, `--bar`) or positionals (like the input filename on the last position).
 
 You can also specify separators to separates the usage text.
 
@@ -106,7 +106,8 @@ You can also specify separators to separates the usage text.
     ~ "optional"   |% "blah blah"           |> 'key
     ~ "optional"   |% "blah blah"           |*> 'key
 
-The `+` define a *required* positional argument, which can not be omited.</br>
+The `+` define a *required* positional argument, which can not be omited.
+
 A `~` defines a *optional* positional argument, which can be omited.
 
 There can **never** be a required argument **after** an optional one. This will produce an
@@ -116,6 +117,7 @@ Descriptions denoted with a `|%` are optional and can be omited.
 
 The key denoted with a `|>` is required and set the name under which the parsed value
 is inserted into the map of parsed values.
+
 A key denoted with a `|*>` marks repeated positionals (e.g. unlimited number of input files).
 
 A key can be a String or a Symbol.
@@ -136,13 +138,14 @@ A key can be a String or a Symbol.
 
 #### Options
 
-    ! "-f" | "--foo" |^ "valueName" |* "defaultValue" |% "description" |> {String => Unit}
+    ! "-f" | "--foo" |^ "valueName" |* "defaultValue" |% "description" |> 'key
 
 Options are defined by using a starting `!`. After that, there can be any number of additional names
 using a `|`. At least there is one, sometimes more names for that option.
 
 An option can be a flag or it can have a value. Flags are things like `-f`, `--verbose` and so on. To define
-such flags, omit the value name `|^`.<br/>
+such flags, omit the value name `|^`.
+
 If you define a value name `myValue`, the following variant are allowed: `-f myValue`, `-f=myValue` and `-f:myValue`. 
 The delimiter (`:` and `=`) can be changed by overriding the member `optionDelimiters`.
 
