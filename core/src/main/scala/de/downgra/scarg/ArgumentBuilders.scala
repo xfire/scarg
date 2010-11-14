@@ -2,20 +2,27 @@ package de.downgra.scarg
 
 import collection.mutable.ListBuffer
 
+/** trait holding builders to define argument definitions.
+ *
+ * @author Rico Schiekel
+ */
 trait ArgumentBuilders {
   self: ArgumentContainer =>
 
   /**
    * build a positional argument. the following forms are allowed:
    *
-   *   + "required" |% "description" |> {action => action}
-   *   ~ "optional" |% "description" |> {action => action}
+   *   + "required" |% "description" |> 'key
+   *   + "required" |% "description" |*> 'key
+   *   ~ "optional" |% "description" |> 'key
+   *   ~ "optional" |% "description" |*> 'key
    *
    *   +    -> required positional parameter
    *   ~    -> optional positional parameter
    *
    *   |%   -> the description, optional
-   *   |>   -> the action
+   *   |>   -> the key
+   *   |*>  -> repeated positional key
    */
   class PositionalBuilder(_name: String) {
     var _description = ""
@@ -26,12 +33,23 @@ trait ArgumentBuilders {
         _description = desc
         this
       }
-      def |>(f: String => Unit) {
-        self.addArgument(PositionalArgument(_name, _description, _optional, f))
+      def |>(key: String) {
+        self.addArgument(PositionalArgument(_name, _description, _optional, false, key))
       }
+      def |>(key: Symbol): Unit = |>(key.name)
+
+      def |*>(key: String) {
+        self.addArgument(PositionalArgument(_name, _description, _optional, true, key))
+      }
+      def |*>(key: Symbol): Unit = |*>(key.name)
 
       def description = |% _
-      def action = |> _
+
+      def key(name: String) = |>(name)
+      def key(name: Symbol) = |>(name)
+
+      def key(name: String, repeated: Boolean) = if(repeated) |*>(name) else |>(name)
+      def key(name: Symbol, repeated: Boolean) = if(repeated) |*>(name) else |>(name)
     }
 
     def unary_+ = required
@@ -51,7 +69,7 @@ trait ArgumentBuilders {
   /**
    * build a option argument. the following forms are allowed:
    * 
-   *   ! "-f" | "--foo" |^ "valueName" |* "defaultValue" |% "description" |> {action => action}
+   *   ! "-f" | "--foo" |^ "valueName" |* "defaultValue" |% "description" |> 'key
    *
    *   !   -> parameter name
    *
@@ -60,7 +78,7 @@ trait ArgumentBuilders {
    *   |*  -> default value, optional. if not give the parameter must be specified on the cmdl
    *          can be any object with a toString method.
    *   |%  -> the description, optional
-   *   |>  -> the action
+   *   |>  -> the key
    */
   class OptionalBuilder(_name: String) {
     val _names = ListBuffer(_name)
@@ -91,15 +109,17 @@ trait ArgumentBuilders {
         this
       }
 
-      def |>(f: String => Unit) {
-        self.addArgument(OptionArgument(_names, _valueName, _description, _default, f))
+      def |>(key: String) {
+        self.addArgument(OptionArgument(_names, _valueName, _description, _default, key))
       }
+      def |>(key: Symbol): Unit = |>(key.name)
 
       def name = | _
       def description = |% _
       def valueName = |^ _
       def default = |* _
-      def action = |> _
+      def key(key: String) = |>(key)
+      def key(key: Symbol) = |>(key)
     }
   }
 

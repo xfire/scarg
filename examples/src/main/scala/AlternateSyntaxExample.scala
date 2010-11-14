@@ -1,6 +1,6 @@
 package examples
 
-import de.downgra.scarg.{ArgumentParser, ConfigMap}
+import de.downgra.scarg.{ArgumentParser, ConfigMap, ValueMap, DefaultHelpViewer}
 
 /**
  * usage: SimpleExample [options] infile
@@ -12,33 +12,33 @@ import de.downgra.scarg.{ArgumentParser, ConfigMap}
  */
 object AlternateSyntaxExample {
 
-  class Configuration extends ConfigMap {
-    lazy val verbose = get[Boolean]("verbose") getOrElse false
-    lazy val outfile = get[String]("outfile") getOrElse "-"
-    lazy val infile = ("infile", "").as[String]
+  class Configuration(m: ValueMap) extends ConfigMap(m) {
+    val verbose = get[Boolean]("verbose") getOrElse false
+    val outfile = get[String]("outfile") getOrElse "-"
+    val infile = ("infile", "").as[String]
   }
 
-  case class SimpleParser(config: ConfigMap) extends ArgumentParser {
+  case class SimpleParser() extends ArgumentParser(new Configuration(_))
+                               with DefaultHelpViewer {
     override val programName = Some("AlternateSyntaxExample")
 
     newOptional("-v").name("--verbose").description("active verbose output").
-                      action(config.set("verbose"))
+                      key("verbose")
     newOptional("-o").valueName("OUT").description("output filename, default: stdout").
-                      action(config.set("outfile", _))
+                      key("outfile")
 
     newSeparator("-", 50)
 
-    newPositional("infile").required.description("input filename").
-                            action(config.set("infile"))
+    newPositional("infile").required.description("input filename").key("infile")
   }
 
   def main(args: Array[String]) {
-    val c = new Configuration
-
-    if(SimpleParser(c).parse(args)) {
-      println("verbose: " + c.verbose)
-      println("outfile: " + c.outfile)
-      println(" infile: " + c.infile)
+    SimpleParser().parse(args) match {
+      case Right(c) =>
+        println("verbose: " + c.verbose)
+        println("outfile: " + c.outfile)
+        println(" infile: " + c.infile)
+      case Left(xs) =>
     }
   }
 
