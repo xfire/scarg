@@ -1,25 +1,60 @@
 package de.downgra.scarg
 
+/** Interface for help message generation.
+ *
+ * @author Rico Schiekel
+ */
 trait HelpViewer {
   def usage: String
   def showUsage: Unit
   def showErrors(errors: List[ParseError]): Unit
 }
 
+/** Simple `HelpViewer` implementation, which generates no output.
+ *
+ * @author Rico Schiekel
+ */
+trait SilentHelpViewer {
+  def usage: String = ""
+  def showUsage: Unit = {}
+  def showErrors(errors: List[ParseError]): Unit = {}
+}
+
+/** Default `HelpViewer` implementation, which generates scarg's default help messages.
+ * can only be mixed into `ArgumentContainer`'s.
+ *
+ * most of the values like `NL`, `INDENT`, `USAGE_HEADER`, ... can be overriden to 
+ * personalize or i18n the output.
+ *
+ * @author Rico Schiekel
+ */
 trait DefaultHelpViewer extends HelpViewer {
   this: ArgumentContainer =>
 
+  /** new line separator */
   val NL = System.getProperty("line.separator")
+  /** default indent */
   val INDENT = " " * 2
+  /** usage header text */
   val USAGE_HEADER = "usage: "
+  /** option header text */
   val OPTIONS_AVAILABLE = "[options] "
+  /** option list header text */
   val OPTIONS_HEADER = "options:" + NL
+  /** error text: unknown argument */
   val UNKNOWN_ARGUMENT = "unknown argumen: "
+  /** error text: missing option */
   val MISSING_OPTION = "missing option: "
+  /** error text: missing parameter */
   val MISSING_POSITIONAL = "missing parameter: "
 
+  /** optional marker text (pair of two char's) */
   val optionalMarker = ('[', ']')
+  /** program name */
   val programName: Option[String] = None
+
+  /** the default output to use (e.g. stderr) */
+  def output(s: String) = Console.err.println(s)
 
   /** produce a list of argument descriptions */
   private def descriptions: Seq[String] = {
@@ -48,8 +83,6 @@ trait DefaultHelpViewer extends HelpViewer {
     })
   }
 
-  /** print string on stderr */
-  private def print(s: String) = Console.err.println(s)
 
   /** create and return the usage string */
   def usage: String = {
@@ -64,14 +97,14 @@ trait DefaultHelpViewer extends HelpViewer {
   }
 
   /** show usage on the screen */
-  def showUsage: Unit = print(usage)
+  def showUsage: Unit = output(usage)
 
   /** show given list of parse errors on the screen */
   def showErrors(errors: List[ParseError]) = errors.map(_ match {
     case UnknownArgument(a)   => UNKNOWN_ARGUMENT + a
     case MissingOption(o)     => MISSING_OPTION + o
     case MissingPositional(p) => MISSING_POSITIONAL + p
-  }).foreach(print _)
+  }).foreach(output _)
 }
 
 // vim: set ts=2 sw=2 et:
