@@ -49,9 +49,15 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
       case OptionArgument(names,valueName,default,_,_) =>
         // check double entries
         if(optionArguments exists (a => (a.names intersect names).nonEmpty))
-          throw new DoubleArgumentException("Positional argument %s already exists." format (names(0)))
+          throw new DoubleArgumentException("Positional argument %s already exists." format (names))
+        // no more option arguments allowed after positionals
+        if(positionalArguments nonEmpty)
+          throw new BadArgumentOrderException("After repeated positional arguments are no more arguments allowed (%s)" format (names))
       case _ =>
     }
+    // no more arguments allowed after repeated positional
+    if(positionalArguments exists (_.repeated))
+      throw new BadArgumentOrderException("After a repeated positional argument are no more arguments allowed")
     arguments += arg
   }
 

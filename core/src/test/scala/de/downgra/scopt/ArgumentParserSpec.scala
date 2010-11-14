@@ -392,6 +392,15 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     evaluating { new OP } should produce [DoubleArgumentException]
   }
 
+  test("required positional before optional positional") {
+    class OP extends NoHelpArgumentParser {
+      + "foo" |> 'a
+      ~ "bar" |> 'b
+    }
+
+    new OP
+  }
+
   test("required positional after optional positional") {
     class OP extends NoHelpArgumentParser {
       ~ "foo" |> 'a
@@ -412,6 +421,32 @@ class ArgumentParserSpec extends FunSuite with ShouldMatchers {
     }
     evaluating { new OP1 } should produce [DoubleArgumentException]
     evaluating { new OP2 } should produce [DoubleArgumentException]
+  }
+
+  test("repeated position not the last argument specified") {
+    class OP1 extends NoHelpArgumentParser {
+      ~ "foo" |*> 'foo
+      ~ "bar" |> 'bar
+    }
+    class OP2 extends NoHelpArgumentParser {
+      + "foo" |*> 'foo
+      + "bar" |> 'bar
+    }
+    evaluating { new OP1 } should produce [BadArgumentOrderException]
+    evaluating { new OP2 } should produce [BadArgumentOrderException]
+  }
+
+  test("no optional arguments allowed after positionals") {
+    class OP1 extends NoHelpArgumentParser {
+      ~ "foo" |> 'foo
+      ! "-b"  |> 'bar
+    }
+    class OP2 extends NoHelpArgumentParser {
+      + "foo" |> 'foo
+      ! "-b"  |> 'bar
+    }
+    evaluating { new OP1 } should produce [BadArgumentOrderException]
+    evaluating { new OP2 } should produce [BadArgumentOrderException]
   }
 
   test("error on unknown argument") {
