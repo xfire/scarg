@@ -16,10 +16,19 @@ class ScargProject(info: ProjectInfo) extends DefaultProject(info) {
   lazy val examples = project("examples", "scarg-examples", new ExamplesProject(_), core)
 
   // scarg core subproject
-  class CoreProject(info: ProjectInfo) extends DefaultProject(info) {
+  class CoreProject(info: ProjectInfo) extends BaseProject(info) {
     lazy val scalatest = "org.scalatest" % "scalatest" % "1.2" % "test"
   }
 
   // examples subproject
-  class ExamplesProject(info: ProjectInfo) extends DefaultProject(info)
+  class ExamplesProject(info: ProjectInfo) extends BaseProject(info)
+
+  // base project which defines docs and sources packages
+  class BaseProject(info: ProjectInfo) extends DefaultProject(info) {
+    lazy val sourceArtifact = Artifact(this.artifactID, "source", "jar", Some("sources"), Nil, None)
+    lazy val docsArtifact = Artifact(this.artifactID, "doc", "jar", Some("docs"), Nil, None)
+    override def packageDocsJar = this.defaultJarPath("-docs.jar")
+    override def packageSrcJar  = this.defaultJarPath("-sources.jar")
+    override def packageToPublishActions = super.packageToPublishActions ++ Seq(this.packageDocs, this.packageSrc)
+  }
 }
