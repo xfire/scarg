@@ -1,6 +1,6 @@
 package de.downgra.scarg
 
-sealed trait Argument
+sealed trait Argument extends NotNull
 
 /** separator line (only relevant for the help viewer) */
 case class Separator(description: String = System.getProperty("line.separator")) extends Argument

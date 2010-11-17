@@ -1,7 +1,7 @@
 package de.downgra.scarg
 
 /** Error's which may be returned by the `ArgumentParser` */
-sealed trait ParseError
+sealed trait ParseError extends NotNull
 
 /** Unknown Argument found Error */
 case class UnknownArgument(argument: String) extends ParseError
