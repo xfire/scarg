@@ -3,12 +3,13 @@ package examples
 import de.downgra.scarg.{ArgumentParser, ConfigMap, ValueMap, DefaultHelpViewer}
 
 /**
- * usage: SimpleExample [options] infile
- *
+ * usage: RepeatedPositionals [options] [infiles]
+ * 
  * options:
- *   -v, --verbose
- *   -o OUT
- *   infile
+ *   -v, --verbose   active verbose output
+ *   --------------------------------------------------
+ *   infiles         multiple (0..n) input filenames
+ * 
  */
 object RepeatedPositionals {
 
@@ -17,7 +18,7 @@ object RepeatedPositionals {
     val infiles = ("infiles").asList[String]
   }
 
-  case class RepeatedPositionalParer()
+  case class RepeatedPositionalParser()
         extends ArgumentParser(new Configuration(_))
            with DefaultHelpViewer {
     override val programName = Some("RepeatedPositionals")
@@ -28,7 +29,7 @@ object RepeatedPositionals {
   }
 
   def main(args: Array[String]) {
-    RepeatedPositionalParer().parse(args) match {
+    RepeatedPositionalParser().parse(args) match {
       case Right(c) =>
         println("verbose: " + c.verbose)
         println("infiles: " + c.infiles)

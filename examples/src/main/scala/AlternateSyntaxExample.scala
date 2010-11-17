@@ -3,12 +3,14 @@ package examples
 import de.downgra.scarg.{ArgumentParser, ConfigMap, ValueMap, DefaultHelpViewer}
 
 /**
- * usage: SimpleExample [options] infile
- *
+ * usage: AlternateSyntaxExample [options] infile
+ * 
  * options:
- *   -v, --verbose
- *   -o OUT
- *   infile
+ *   -v, --verbose   active verbose output
+ *   -o OUT          output filename, default: stdout
+ *   --------------------------------------------------
+ *   infile          input filename
+ * 
  */
 object AlternateSyntaxExample {
 
