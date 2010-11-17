@@ -24,7 +24,7 @@ trait ArgumentBuilders {
    *   |>   -> the key
    *   |*>  -> repeated positional key
    */
-  class PositionalBuilder(_name: String) {
+  class PositionalBuilder private[ArgumentBuilders] (_name: String) extends NotNull {
     var _description = ""
     var _optional = false
 
@@ -80,7 +80,7 @@ trait ArgumentBuilders {
    *   |%  -> the description, optional
    *   |>  -> the key
    */
-  class OptionalBuilder(_name: String) {
+  class OptionalBuilder private[ArgumentBuilders] (_name: String) extends NotNull {
     val _names = ListBuffer(_name)
     var _description = ""
     var _valueName: Option[String] = None
@@ -137,7 +137,7 @@ trait ArgumentBuilders {
    *   ("=" >>>> 60)
    *
    */
-  class SeparatorBuilder(description: String) {
+  class SeparatorBuilder private[ArgumentBuilders] (description: String) extends NotNull {
     def >>> {
       self.addArgument(Separator(description))
     }
