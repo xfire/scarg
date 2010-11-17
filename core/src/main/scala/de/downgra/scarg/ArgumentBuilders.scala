@@ -62,7 +62,7 @@ trait ArgumentBuilders {
     }
   }
 
-  def newPositional(name: String) = new PositionalBuilder(name)
+  def positional(name: String) = new PositionalBuilder(name)
 
   implicit def toPositionalBuilder(name: String) = new PositionalBuilder(name)
 
@@ -123,7 +123,7 @@ trait ArgumentBuilders {
     }
   }
 
-  def newOptional(name: String) = !(new OptionalBuilder(name))
+  def optional(name: String) = !(new OptionalBuilder(name))
 
   implicit def toOptionalBuilder(name: String) = new OptionalBuilder(name)
 
@@ -158,7 +158,7 @@ trait ArgumentBuilders {
     private val NL = System.getProperty("line.separator")
   }
 
-  def newSeparator(description: String, number: Int = 1, multiLine: Boolean = false) =
+  def separator(description: String, number: Int = 1, multiLine: Boolean = false) =
     if(multiLine) new SeparatorBuilder(description).>>>>(number)
     else new SeparatorBuilder(description).>>>(number)
 

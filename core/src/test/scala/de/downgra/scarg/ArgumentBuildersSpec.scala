@@ -27,10 +27,10 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("complete positional alternate syntax") {
     object Test extends TestContainer with ArgumentBuilders {
-      newPositional("required1").required description("description1") key('key)
-      newPositional("optional").optional.
-                                description("description2").
-                                key('key)
+      positional("required1").required description("description1") key('key)
+      positional("optional").optional.
+                             description("description2").
+                             key('key)
     }
 
     Test.arguments should have length (2)
@@ -85,13 +85,13 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("complete option alternate syntax") {
     object Test extends TestContainer with ArgumentBuilders {
-      newOptional("-f") name("--foo") valueName("valueName1") default("defaultValue1") description("description1") key('key)
-      newOptional("--oof").name("-o").
-                           valueName("valueName2").
-                           default("defaultValue2").
-                           description("description2").
-                           key('key)
-      newOptional("-b") valueName("valueName3") default("defaultValue3") description("description3") key('key)
+      optional("-f") name("--foo") valueName("valueName1") default("defaultValue1") description("description1") key('key)
+      optional("--oof").name("-o").
+                        valueName("valueName2").
+                        default("defaultValue2").
+                        description("description2").
+                        key('key)
+      optional("-b") valueName("valueName3") default("defaultValue3") description("description3") key('key)
     }
 
     Test.arguments should have length (3)
@@ -196,10 +196,10 @@ class ArgumentBuildersSpec extends FunSuite with ShouldMatchers {
 
   test("separators alternate syntax") {
     object Test extends TestContainer with ArgumentBuilders {
-      newSeparator("---------------------")
-      newSeparator("-", 60)
-      newSeparator("=====================", multiLine = true)
-      newSeparator("=", 60, true)
+      separator("---------------------")
+      separator("-", 60)
+      separator("=====================", multiLine = true)
+      separator("=", 60, true)
     }
     val NL = System.getProperty("line.separator")
 

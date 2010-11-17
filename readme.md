@@ -162,16 +162,16 @@ A key can be a String or a Symbol.
 
 ##### Alternate syntax:
 
-    newPositional("required").required.
-                              description("description").
-                              key("key")
-    newPositional("required").required.
-                              description("description").
-                              key("key", repeated = false)
+    positional("required").required.
+                           description("description").
+                           key("key")
+    positional("required").required.
+                           description("description").
+                           key("key", repeated = false)
 
-    newPositional("optional").optional.
-                              description("description").
-                              key('key, true)
+    positional("optional").optional.
+                           description("description").
+                           key('key, true)
 
 
 #### Options
@@ -197,11 +197,11 @@ values.
 
 ##### Alternate syntax:
 
-    newOptional("-f").name("--foo").
-                      valueName("valueName).
-                      default("defaultValue").
-                      description("description").
-                      key('key)
+    optional("-f").name("--foo").
+                   valueName("valueName).
+                   default("defaultValue").
+                   description("description").
+                   key('key)
 
 
 #### Separators
@@ -221,11 +221,11 @@ beware, those annoying parentheses are needed.
 
 ##### Alternate syntax:
 
-    newSeparator("--------------------")
-    newSeparator("-", 60)
+    separator("--------------------")
+    separator("-", 60)
 
-    newSeparator("====================", multiLine = true)
-    newSeparator("=", 60, true)
+    separator("====================", multiLine = true)
+    separator("=", 60, true)
 
 
 ### Help Viewer

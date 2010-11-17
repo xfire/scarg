@@ -22,14 +22,14 @@ object AlternateSyntaxExample {
                                with DefaultHelpViewer {
     override val programName = Some("AlternateSyntaxExample")
 
-    newOptional("-v").name("--verbose").description("active verbose output").
+    optional("-v").name("--verbose").description("active verbose output").
                       key("verbose")
-    newOptional("-o").valueName("OUT").description("output filename, default: stdout").
+    optional("-o").valueName("OUT").description("output filename, default: stdout").
                       key("outfile")
 
-    newSeparator("-", 50)
+    separator("-", 50)
 
-    newPositional("infile").required.description("input filename").key("infile")
+    positional("infile").required description("input filename") key("infile")
   }
 
   def main(args: Array[String]) {
