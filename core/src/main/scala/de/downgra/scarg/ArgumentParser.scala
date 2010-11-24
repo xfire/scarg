@@ -80,37 +80,36 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
    * @return a `ParseResult`
    */
   def parse(args: Seq[String]): ParseResult = {
-    val options = Map() ++ (optionArguments filter (_.valueName.isDefined) flatMap (o => o.names map ((_ -> o))))
-    val flags = Map() ++ (optionArguments filter (_.valueName.isEmpty) flatMap (o => o.names map ((_ -> o))))
+    val options = Map() ++ (optionArguments.filter(_.valueName.isDefined)
+                                           .flatMap (o => o.names map ((_ -> o))))
+    val flags = Map() ++ (optionArguments.filter(_.valueName.isEmpty)
+                                         .flatMap (o => o.names map ((_ -> o))))
     val positionals = new MStack[PositionalArgument].pushAll(positionalArguments.reverse)
 
     var repeatedPositionalsFound: Set[PositionalArgument] = Set()
-    var argumentsFound: Set[OptionArgument] = Set()
+    var optionalsFound: Set[OptionArgument] = Set()
     var errors: List[ParseError] = List()
     var result: ValueMap = Map()
 
+    /** found new optional */
+    def newOptional(arg: Option[OptionArgument], value: String) = arg map { a =>
+      result += (a.key -> (value :: result.getOrElse(a.key, Nil)))
+      optionalsFound += a
+    }
+  
     @tailrec def _parse(args: Seq[String]): Unit = args.toList match {
       // ___ -f value
       case o :: v :: t if(options.contains(o) && v(0) != '-') =>
-        options get(o) map { a =>
-          result += (a.key -> (v :: result.getOrElse(a.key, Nil)))
-          argumentsFound += a
-        }
+        newOptional(options.get(o), v)
         _parse(t)
       // ___ -f[:=]value
       case Delimiter(o, v) :: t if(options contains o) =>
-        options get(o) map { a =>
-          result += (a.key -> (v :: result.getOrElse(a.key, Nil)))
-          argumentsFound += a
-        }
+        newOptional(options.get(o), v)
         _parse(t)
       // ___ -f
       case f :: t if(flags contains f) =>
-        flags get(f) map { a => 
-          // flags are booleans per default
-          result += (a.key -> (flagDefaults._1 :: result.getOrElse(a.key, Nil)))
-          argumentsFound += a
-        }
+        // flags are booleans per default
+        newOptional(flags.get(f), flagDefaults._1)
         _parse(t)
       // ___ positionalParam
       case p :: t if(positionals.nonEmpty && p(0) != '-') =>
@@ -130,30 +129,14 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
 
     _parse(args)
 
-    val notFoundOptions = optionArguments.toSet -- argumentsFound
-
-    // need to set default for not given flags with value "false"
-    notFoundOptions filter (_.valueName.isEmpty) foreach { a =>
-      result += (a.key -> (flagDefaults._2 :: result.getOrElse(a.key, Nil)))
-    }
-
-    // set default values for all option arguments
-    notFoundOptions filter (o => o.default.isDefined && o.valueName.nonEmpty) foreach { a => 
-      result += (a.key -> (a.default.get :: result.getOrElse(a.key, Nil)))
-    }
-
-    // set default values for optional repeated positional values
+    val missingOptionals = optionArguments.toSet -- optionalsFound
     val missingPositionals = positionals.toSet -- repeatedPositionalsFound // remove found repeated arguments
-    missingPositionals filter(p => p.optional && p.repeated) foreach { a =>
-      result += (a.key -> Nil)
-    }
 
-    // check if all necessary arguments are given
-    errors = (notFoundOptions filter (o => o.default.isEmpty && o.valueName.isDefined) // only options which are not flags
-             ).foldLeft(errors)((a,v) => MissingPositional(v.names(0)) :: a)
+    result = (defValsOptionals(missingOptionals)_ andThen
+              defValsPositionals(missingPositionals) _)(result)
 
-    // check missing positional arguments without the optional or found repeated
-    errors = (missingPositionals filter(p => p.optional == false)).foldLeft(errors)((a,v) => MissingPositional(v.name) :: a)
+    errors = (checkOptionals(missingOptionals)_ andThen
+              checkPositionals(missingPositionals)_ )(errors)
 
     if(errors.nonEmpty) {
       if(showErrors) {
@@ -162,5 +145,41 @@ abstract class ArgumentParser[T](configFactory: ValueMap => T) extends ArgumentC
       }
       Left(errors.reverse)
     } else Right(configFactory(result mapValues (_.reverse)))
+  }
+
+  /** set default values for option arguments */
+  private def defValsOptionals(missingOptionals: Set[OptionArgument])(foundValues: ValueMap): ValueMap = {
+    def append(a: OptionArgument, v: String) = (a.key -> (v :: foundValues.getOrElse(a.key, Nil)))
+
+    // need to set default for not given flags with value "false"
+    val a = missingOptionals.filter(_.valueName.isEmpty)
+                            .map( a => append(a, flagDefaults._2) )
+                            .toMap
+
+    // set default values for all option arguments
+    val b = missingOptionals.filter(o => o.default.isDefined && o.valueName.nonEmpty)
+                            .map( a => append(a, a.default.get) )
+                            .toMap
+    foundValues ++ a ++ b
+  }
+
+  /** set default values for optional repeated positional values */
+  private def defValsPositionals(missingPositionals: Set[PositionalArgument])(foundValues: ValueMap): ValueMap = {
+    val mp = missingPositionals.filter(p => p.optional && p.repeated)
+                               .map( a => (a.key -> Nil) )
+                               .toMap
+    foundValues ++ mp
+  }
+
+  /** check if all necessary arguments are given */
+  private def checkOptionals(missingOptionals: Set[OptionArgument])(errors: List[ParseError]): List[ParseError] = {
+    missingOptionals.filter(o => o.default.isEmpty && o.valueName.isDefined) // only options which are not flags
+                    .foldLeft(errors)((a,v) => MissingPositional(v.names(0)) :: a)
+  }
+
+  /** check missing positional arguments without the optional or found repeated */
+  private def checkPositionals(missingPositionals: Set[PositionalArgument])(errors: List[ParseError]): List[ParseError] = {
+    missingPositionals.filter(p => p.optional == false)
+                      .foldLeft(errors)((a,v) => MissingPositional(v.name) :: a)
   }
 }
